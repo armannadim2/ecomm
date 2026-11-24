@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 /**
- * Generates a unique slug from the `name` attribute when the slug is empty.
+ * Generates a unique slug (from slugSource(), `name` by default) when the slug is empty.
  *
  * @mixin Model
  */
@@ -15,9 +15,15 @@ trait HasUniqueSlug
     protected static function bootHasUniqueSlug(): void
     {
         static::saving(function (Model $model): void {
-            $source = blank($model->slug) ? $model->name : $model->slug;
+            $source = blank($model->slug) ? $model->slugSource() : $model->slug;
             $model->slug = static::uniqueSlug($source, $model->getKey());
         });
+    }
+
+    /** Attribute the slug is built from. Override when it is not `name`. */
+    public function slugSource(): string
+    {
+        return (string) $this->name;
     }
 
     public static function uniqueSlug(string $source, int|string|null $ignoreId = null): string

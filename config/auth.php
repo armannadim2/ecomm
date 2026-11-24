@@ -1,7 +1,7 @@
 <?php
 
+use App\Domain\Customers\Models\Customer;
 use App\Domain\Staff\Models\Staff;
-use App\Models\User;
 
 return [
 
@@ -18,7 +18,7 @@ return [
 
     'defaults' => [
         'guard' => env('AUTH_GUARD', 'web'),
-        'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+        'passwords' => env('AUTH_PASSWORD_BROKER', 'customers'),
     ],
 
     /*
@@ -39,9 +39,10 @@ return [
     */
 
     'guards' => [
+        // Storefront customers.
         'web' => [
             'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'customers',
         ],
 
         // Admin panel (owner + employees). Never shared with customers.
@@ -69,20 +70,15 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        'customers' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
+            'model' => Customer::class,
         ],
 
         'staff' => [
             'driver' => 'eloquent',
             'model' => Staff::class,
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
     ],
 
     /*
@@ -105,8 +101,8 @@ return [
     */
 
     'passwords' => [
-        'users' => [
-            'provider' => 'users',
+        'customers' => [
+            'provider' => 'customers',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire' => 60,
             'throttle' => 60,

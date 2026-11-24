@@ -2,18 +2,21 @@
 
 use App\Domain\Catalog\Models\Brand;
 use App\Domain\Catalog\Models\Product;
+use App\Domain\Customers\Models\Customer;
 use App\Domain\Staff\Models\Staff;
+use App\Filament\Pages\ManageStoreSettings;
 use App\Filament\Resources\Activities\ActivityResource;
 use App\Filament\Resources\Activities\Pages\ListActivities;
 use App\Filament\Resources\Brands\Pages\ManageBrands;
 use App\Filament\Resources\Categories\Pages\ManageCategories;
+use App\Filament\Resources\Customers\Pages\ListCustomers;
+use App\Filament\Resources\Pages\Pages\ListPages;
 use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Filament\Resources\Roles\Pages\ManageRoles;
 use App\Filament\Resources\Staff\Pages\ManageStaff;
 use App\Filament\Resources\Staff\StaffResource;
-use App\Models\User;
 use Filament\Facades\Filament;
 use Livewire\Livewire;
 
@@ -45,7 +48,7 @@ it('blocks deactivated staff', function () {
 });
 
 it('does not let customers (web guard) into the admin', function () {
-    actingAs(User::factory()->create(), 'web');
+    actingAs(Customer::factory()->create(), 'web');
 
     get('/admin')->assertRedirect('/admin/login');
 });
@@ -61,6 +64,9 @@ it('renders every admin screen for the owner', function (string $page) {
     ManageBrands::class,
     ManageStaff::class,
     ManageRoles::class,
+    ManageStoreSettings::class,
+    ListPages::class,
+    ListCustomers::class,
     ListActivities::class,
 ]);
 

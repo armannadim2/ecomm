@@ -17,6 +17,8 @@ class EditProduct extends EditRecord
     {
         return [
             ProductActions::publish()->after(fn () => $this->refreshFormData(['status'])),
+            ProductActions::reject()->after(fn () => $this->refreshFormData(['status'])),
+            ProductActions::submitForReview()->after(fn () => $this->refreshFormData(['status'])),
             ProductActions::unpublish()->after(fn () => $this->refreshFormData(['status'])),
             ProductActions::adjustStock(),
             ActionGroup::make([

@@ -1,0 +1,36 @@
+/*
+ * Admin panel theme. Follows the Stitch "Afegir Producte - Tot & Més" design
+ * (D:\Projects\eComm\design\totmes-afegir-producte.html): Plus Jakarta Sans, warm orange actions (#bf4317),
+ * soft rounded cards. Colours come from AdminPanelProvider::colors() so light and dark mode both work.
+ * The font is self-hosted through @fontsource (no Google / Bunny request).
+ */
+@import '@fontsource-variable/plus-jakarta-sans/wght.css';
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+/* ---- "Subir producto" (QuickUpload) cards ---- */
+.qu-page .fi-section {
+    @apply rounded-xl shadow-sm;
+}
+
+.qu-page .fi-section-header-heading {
+    @apply flex items-center gap-3 text-lg font-bold;
+}
+
+.qu-step {
+    @apply inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-base font-bold text-primary-700 dark:bg-white/10 dark:text-primary-300;
+}
+
+.qu-badge {
+    @apply rounded bg-primary-50 px-2 py-1 text-xs font-bold text-primary-700 dark:bg-primary-500/15 dark:text-primary-300;
+}
+
+.qu-page .fi-fo-file-upload .filepond--panel-root {
+    @apply bg-gray-50 dark:bg-white/5;
+}
+
+.qu-page .fi-section-header-description {
+    @apply ms-11;
+}

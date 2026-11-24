@@ -57,6 +57,35 @@ class ProductResource extends Resource
         return ['name', 'variants.sku'];
     }
 
+    /** Colaboradores only see the products they uploaded. */
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery()->with('createdBy');
+        $user = auth()->user();
+
+        if ($user !== null && ! $user->can('products.view')) {
+            $query->where('created_by_staff_id', $user->getKey());
+        }
+
+        return $query;
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        if (! auth()->user()?->can('products.publish')) {
+            return null;
+        }
+
+        $pending = Product::query()->where('status', 'pending_review')->count();
+
+        return $pending > 0 ? (string) $pending : null;
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Pendientes de revisión';
+    }
+
     public static function getRecordRouteBindingEloquentQuery(): Builder
     {
         return parent::getRecordRouteBindingEloquentQuery()

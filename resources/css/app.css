@@ -1,9 +1,167 @@
+/*
+ * Storefront styles. Design: Google Stitch "Tot & Més Barcelona" (references in D:\Projects\eComm\design).
+ * Fonts are self-hosted through @fontsource (bundled by Vite): no request to Google Fonts (GDPR).
+ */
+@import '@fontsource-variable/plus-jakarta-sans/wght.css';
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Headings use the same family in extra-bold (Tot & Més design has a single typeface). */
+    --font-display: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+    /* Palette: Tot & Més (deep navy + warm terracotta orange on cream). */
+    --color-primary: #1b2942; /* navy: headings, text, announcement bar */
+    --color-primary-container: #2a3d5e;
+    --color-on-primary: #ffffff;
+
+    --color-secondary: #bf4317; /* orange CTAs; design #e05a2b darkened for 4.5:1 with white text */
+    --color-secondary-hover: #a83812;
+    --color-on-secondary: #ffffff;
+    --color-secondary-container: #ffe8de;
+    --color-accent: #e05a2b; /* brand orange for decoration only (logo, dots), never for text */
+
+    --color-success: #047857;
+    --color-success-container: #d1fae5;
+    --color-on-success-fixed-variant: #065f46;
+
+    --color-tertiary: #1b2942;
+    --color-tertiary-fixed: #e8ecf3;
+    --color-on-tertiary-fixed: #1b2942;
+    --color-warning: #b45309;
+
+    --color-error: #ba1a1a;
+    --color-error-container: #ffdad6;
+    --color-on-error-container: #93000a;
+
+    --color-surface: #faf2ed;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #f7eee7;
+    --color-surface-container: #efe6df;
+    --color-surface-container-high: #e5dcd4;
+    --color-surface-container-highest: #dcd2c9;
+    --color-on-surface: #1b2942;
+    --color-on-surface-variant: #4e5d78;
+    --color-outline: #5f6b7e; /* design #8f9cae, darkened for 4.5:1 contrast on cream */
+    --color-outline-variant: #e5dcd4;
+    --color-inverse-surface: #1b2942;
+    --color-inverse-on-surface: #ffffff;
+
+    /* Type scale. */
+    --text-headline-display: 48px;
+    --text-headline-display--line-height: 56px;
+    --text-headline-display--letter-spacing: -0.02em;
+    --text-headline-display--font-weight: 800;
+    --text-headline-display-mobile: 32px;
+    --text-headline-display-mobile--line-height: 40px;
+    --text-headline-display-mobile--letter-spacing: -0.01em;
+    --text-headline-display-mobile--font-weight: 800;
+    --text-headline-lg: 36px;
+    --text-headline-lg--line-height: 44px;
+    --text-headline-lg--letter-spacing: -0.015em;
+    --text-headline-lg--font-weight: 800;
+    --text-headline-lg-mobile: 26px;
+    --text-headline-lg-mobile--line-height: 34px;
+    --text-headline-lg-mobile--font-weight: 800;
+    --text-headline-md: 24px;
+    --text-headline-md--line-height: 32px;
+    --text-headline-md--font-weight: 800;
+    --text-headline-sm: 20px;
+    --text-headline-sm--line-height: 28px;
+    --text-headline-sm--font-weight: 800;
+    --text-title-lg: 18px;
+    --text-title-lg--line-height: 24px;
+    --text-title-lg--letter-spacing: -0.01em;
+    --text-title-lg--font-weight: 700;
+    --text-title-md: 16px;
+    --text-title-md--line-height: 22px;
+    --text-title-md--font-weight: 600;
+    --text-body-lg: 16px;
+    --text-body-lg--line-height: 26px;
+    --text-body-md: 14px;
+    --text-body-md--line-height: 22px;
+    --text-body-sm: 12px;
+    --text-body-sm--line-height: 18px;
+    --text-label-lg: 14px;
+    --text-label-lg--line-height: 20px;
+    --text-label-lg--letter-spacing: 0.01em;
+    --text-label-lg--font-weight: 600;
+    --text-label-md: 12px;
+    --text-label-md--line-height: 16px;
+    --text-label-md--letter-spacing: 0.02em;
+    --text-label-md--font-weight: 600;
+    --text-label-sm: 11px;
+    --text-label-sm--line-height: 14px;
+    --text-label-sm--letter-spacing: 0.04em;
+    --text-label-sm--font-weight: 700;
+    --text-price: 24px;
+    --text-price--line-height: 28px;
+    --text-price--letter-spacing: -0.02em;
+    --text-price--font-weight: 800;
+
+    /* Radius (rounded-xl inputs, rounded-2xl cards, rounded-3xl hero blocks). */
+    --radius-sm: 0.25rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1rem;
+    --radius-3xl: 1.5rem;
+
+    --shadow-soft: 0 1px 8px rgb(27 41 66 / 0.08);
+    --shadow-cta: 0 4px 16px rgb(224 90 43 / 0.35);
+}
+
+@layer base {
+    body {
+        @apply bg-surface font-sans text-body-md text-on-surface antialiased;
+    }
+
+    ::selection {
+        @apply bg-secondary-container text-secondary;
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-secondary;
+    }
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+@utility no-scrollbar {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* Long-form product description (sanitised HTML from the editor). */
+.rich-text {
+    @apply space-y-3 text-body-md leading-relaxed text-on-surface-variant;
+
+    & h2,
+    & h3 {
+        @apply font-display text-headline-sm text-on-surface;
+    }
+
+    & ul {
+        @apply list-disc space-y-1 pl-5;
+    }
+
+    & ol {
+        @apply list-decimal space-y-1 pl-5;
+    }
+
+    & a {
+        @apply text-secondary underline;
+    }
+
+    & strong {
+        @apply font-semibold text-on-surface;
+    }
 }

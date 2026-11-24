@@ -1,1 +1,1 @@
-//
+import './campaign-effects';

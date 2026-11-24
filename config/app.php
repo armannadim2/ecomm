@@ -78,9 +78,19 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'es'),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'es'),
+
+    /*
+    | Storefront languages (code => name in that language). Spanish is the source language:
+    | texts are written in Spanish in the views and translated in lang/en.json and lang/ca.json.
+    */
+    'available_locales' => [
+        'es' => 'Español',
+        'ca' => 'Català',
+        'en' => 'English',
+    ],
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 

@@ -36,7 +36,8 @@ return [
 
         'array' => [
             'driver' => 'array',
-            'serialize' => false,
+            // Serialized in tests so they catch objects the real cache would refuse to unserialize.
+            'serialize' => (bool) env('CACHE_ARRAY_SERIALIZE', false),
         ],
 
         'database' => [

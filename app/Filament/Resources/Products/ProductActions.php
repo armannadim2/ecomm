@@ -5,12 +5,16 @@ namespace App\Filament\Resources\Products;
 use App\Domain\Catalog\Actions\AdjustStock;
 use App\Domain\Catalog\Actions\DuplicateProduct;
 use App\Domain\Catalog\Actions\PublishProduct;
+use App\Domain\Catalog\Actions\RejectProduct;
+use App\Domain\Catalog\Actions\SubmitProductForReview;
 use App\Domain\Catalog\Actions\UnpublishProduct;
+use App\Domain\Catalog\Enums\ProductStatus;
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Catalog\Models\ProductVariant;
 use App\Filament\Support\DomainAction;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Support\Icons\Heroicon;
 
@@ -31,10 +35,50 @@ final class ProductActions
             ->requiresConfirmation()
             ->modalHeading('Publicar producto')
             ->modalDescription('El producto será visible para los clientes en la tienda.')
+            ->label(fn (Product $record) => $record->status === ProductStatus::PendingReview ? 'Aprobar y publicar' : 'Publicar')
             ->action(fn (Product $record) => DomainAction::run(
-                fn () => app(PublishProduct::class)->handle($record),
+                fn () => app(PublishProduct::class)->handle($record, auth()->user()),
                 success: 'Producto publicado',
                 failureTitle: 'Todavía no se puede publicar',
+            ));
+    }
+
+    public static function submitForReview(): Action
+    {
+        return Action::make('submitForReview')
+            ->label('Enviar a revisión')
+            ->icon(Heroicon::OutlinedPaperAirplane)
+            ->color('primary')
+            ->authorize('submitForReview')
+            ->visible(fn (Product $record) => $record->status === ProductStatus::Draft && ! $record->trashed())
+            ->requiresConfirmation()
+            ->modalDescription('Un responsable revisará el producto antes de publicarlo. Te avisaremos.')
+            ->action(fn (Product $record) => DomainAction::run(
+                fn () => app(SubmitProductForReview::class)->handle($record),
+                success: 'Enviado a revisión',
+                failureTitle: 'Todavía no se puede enviar',
+            ));
+    }
+
+    public static function reject(): Action
+    {
+        return Action::make('reject')
+            ->label('Devolver con comentarios')
+            ->icon(Heroicon::OutlinedArrowUturnLeft)
+            ->color('danger')
+            ->authorize('publish')
+            ->visible(fn (Product $record) => $record->status === ProductStatus::PendingReview)
+            ->modalHeading('Devolver al colaborador')
+            ->schema([
+                Textarea::make('note')
+                    ->label('¿Qué tiene que cambiar?')
+                    ->placeholder('Ej.: La foto principal está borrosa; añade las medidas en la descripción.')
+                    ->required()
+                    ->rows(3),
+            ])
+            ->action(fn (Product $record, array $data) => DomainAction::run(
+                fn () => app(RejectProduct::class)->handle($record, auth()->user(), $data['note']),
+                success: 'Producto devuelto al colaborador',
             ));
     }
 

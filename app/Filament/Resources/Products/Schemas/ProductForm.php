@@ -155,6 +155,13 @@ class ProductForm
                     ->hiddenLabel()
                     ->badge()
                     ->visibleOn('edit'),
+                TextEntry::make('review_note')
+                    ->label('Comentarios de la revisión')
+                    ->color('danger')
+                    ->visible(fn (?Product $record) => filled($record?->review_note)),
+                TextEntry::make('createdBy.name')
+                    ->label('Subido por')
+                    ->visible(fn (?Product $record) => $record?->created_by_staff_id !== null),
                 TextEntry::make('status_help')
                     ->hiddenLabel()
                     ->state('Usa los botones «Publicar» u «Ocultar» de arriba para cambiar el estado.')

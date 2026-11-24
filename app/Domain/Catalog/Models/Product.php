@@ -5,6 +5,7 @@ namespace App\Domain\Catalog\Models;
 use App\Domain\Catalog\Enums\ProductStatus;
 use App\Domain\Catalog\Enums\TaxClass;
 use App\Domain\Catalog\Policies\ProductPolicy;
+use App\Domain\Staff\Models\Staff;
 use App\Support\HasUniqueSlug;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Scout\Searchable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Image\Enums\Fit;
@@ -34,7 +36,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class Product extends Model implements HasMedia
 {
     /** @use HasFactory<ProductFactory> */
-    use HasFactory, HasUlids, HasUniqueSlug, InteractsWithMedia, LogsActivity, SoftDeletes;
+    use HasFactory, HasUlids, HasUniqueSlug, InteractsWithMedia, LogsActivity, Searchable, SoftDeletes;
 
     public const IMAGES = 'images';
 
@@ -63,7 +65,25 @@ class Product extends Model implements HasMedia
             'status' => ProductStatus::class,
             'tax_class' => TaxClass::class,
             'published_at' => 'datetime',
+            'submitted_at' => 'datetime',
         ];
+    }
+
+    /** @return BelongsTo<Staff, $this> Staff member who uploaded the product. */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(Staff::class, 'created_by_staff_id');
+    }
+
+    /** @return BelongsTo<Staff, $this> */
+    public function reviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(Staff::class, 'reviewed_by_staff_id');
+    }
+
+    public function isOwnedBy(Staff $staff): bool
+    {
+        return $this->created_by_staff_id !== null && $this->created_by_staff_id === $staff->id;
     }
 
     /** @return BelongsTo<Brand, $this> */
@@ -93,6 +113,40 @@ class Product extends Model implements HasMedia
     public function isPublished(): bool
     {
         return $this->status === ProductStatus::Published;
+    }
+
+    /**
+     * Fields searched by the storefront. With the "database" driver these are
+     * plain LIKE queries; switching to Meilisearch later needs no code change.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'name' => $this->name,
+            'short_description' => $this->short_description,
+        ];
+    }
+
+    public function shouldBeSearchable(): bool
+    {
+        return $this->isPublished() && ! $this->trashed();
+    }
+
+    /**
+     * URL of the main photo. Falls back to the original while the queued
+     * WebP conversion is not generated yet, and to null without photos.
+     */
+    public function imageUrl(string $conversion = 'medium'): ?string
+    {
+        $media = $this->getFirstMedia(self::IMAGES);
+
+        if ($media === null) {
+            return null;
+        }
+
+        return $media->hasGeneratedConversion($conversion) ? $media->getUrl($conversion) : $media->getUrl();
     }
 
     public function registerMediaCollections(): void

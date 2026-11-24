@@ -26,7 +26,7 @@ class ProductsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['brand', 'categories', 'variants', 'media']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['brand', 'categories', 'variants', 'media', 'createdBy']))
             ->defaultSort('updated_at', 'desc')
             ->columns([
                 SpatieMediaLibraryImageColumn::make('images')
@@ -89,6 +89,8 @@ class ProductsTable
                 EditAction::make(),
                 ActionGroup::make([
                     ProductActions::publish(),
+                    ProductActions::reject(),
+                    ProductActions::submitForReview(),
                     ProductActions::unpublish(),
                     ProductActions::adjustStock(),
                     ProductActions::duplicate(),

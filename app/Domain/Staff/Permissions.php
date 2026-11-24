@@ -17,7 +17,8 @@ final class Permissions
             'products' => [
                 'label' => 'Productos',
                 'permissions' => [
-                    'products.view' => 'Ver productos',
+                    'products.view' => 'Ver todos los productos',
+                    'products.submit' => 'Subir productos propios (se revisan antes de publicarse si no puede publicar)',
                     'products.create' => 'Crear productos',
                     'products.update' => 'Editar productos',
                     'products.publish' => 'Publicar / ocultar productos',
@@ -46,6 +47,32 @@ final class Permissions
                     'brands.restore' => 'Restaurar marcas',
                 ],
             ],
+            'customers' => [
+                'label' => 'Clientes',
+                'permissions' => [
+                    'customers.view' => 'Ver clientes',
+                ],
+            ],
+            'pages' => [
+                'label' => 'Páginas',
+                'permissions' => [
+                    'pages.view' => 'Ver páginas',
+                    'pages.create' => 'Crear páginas',
+                    'pages.update' => 'Editar páginas (incluidos textos legales)',
+                    'pages.delete' => 'Enviar páginas a la papelera',
+                    'pages.restore' => 'Restaurar páginas',
+                ],
+            ],
+            'campaigns' => [
+                'label' => 'Campañas',
+                'permissions' => [
+                    'campaigns.view' => 'Ver campañas',
+                    'campaigns.create' => 'Crear campañas',
+                    'campaigns.update' => 'Editar campañas',
+                    'campaigns.delete' => 'Enviar campañas a la papelera',
+                    'campaigns.restore' => 'Restaurar campañas',
+                ],
+            ],
             'staff' => [
                 'label' => 'Equipo',
                 'permissions' => [
@@ -60,6 +87,7 @@ final class Permissions
                 'label' => 'Sistema',
                 'permissions' => [
                     'activity.view' => 'Ver historial de actividad',
+                    'settings.manage' => 'Editar datos de la tienda',
                 ],
             ],
         ];
@@ -100,16 +128,27 @@ final class Permissions
                 || str_starts_with($p, 'brands.'),
         ));
 
+        $pagesEdit = ['pages.view', 'pages.create', 'pages.update'];
+        $campaignsEdit = ['campaigns.view', 'campaigns.create', 'campaigns.update'];
+
         return [
-            'Gerente' => [...$catalogAll, 'staff.view', 'activity.view'],
+            'Gerente' => [
+                ...$catalogAll, ...$pagesEdit, 'pages.delete', 'pages.restore',
+                ...$campaignsEdit, 'campaigns.delete', 'campaigns.restore',
+                'customers.view', 'staff.view', 'activity.view', 'settings.manage',
+            ],
             'Contenido' => [
                 'products.view', 'products.create', 'products.update', 'products.publish',
                 'categories.view', 'categories.create', 'categories.update',
                 'brands.view', 'brands.create', 'brands.update',
+                ...$pagesEdit,
+                ...$campaignsEdit,
             ],
+            // Uploads products into the store; an owner/manager reviews them before they go live.
+            'Colaborador' => ['products.submit', 'categories.view', 'brands.view'],
             'Almacén' => ['products.view', 'products.stock', 'categories.view', 'brands.view'],
-            'Pedidos' => ['products.view', 'categories.view', 'brands.view'],
-            'Atención al cliente' => ['products.view', 'categories.view', 'brands.view'],
+            'Pedidos' => ['products.view', 'categories.view', 'brands.view', 'customers.view'],
+            'Atención al cliente' => ['products.view', 'categories.view', 'brands.view', 'customers.view'],
         ];
     }
 }

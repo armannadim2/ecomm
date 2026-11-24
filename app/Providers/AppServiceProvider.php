@@ -2,16 +2,23 @@
 
 namespace App\Providers;
 
+use App\Domain\Catalog\Models\Category;
+use App\Domain\Catalog\Models\Product;
+use App\Domain\Content\Models\Page;
+use App\Domain\Marketing\Models\Campaign;
 use App\Domain\Staff\Models\Staff;
 use App\Domain\Staff\Policies\ActivityPolicy;
 use App\Domain\Staff\Policies\RolePolicy;
+use App\Http\View\StoreLayoutComposer;
 use Filament\Support\Facades\FilamentTimezone;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Spatie\Activitylog\Models\Activity;
@@ -29,9 +36,29 @@ class AppServiceProvider extends ServiceProvider
         $this->configureSafety();
         $this->configureAuthorization();
         $this->configureAuditing();
+        $this->configureStorefront();
 
         // Dates are stored in UTC and shown to staff in Spanish time.
         FilamentTimezone::set('Europe/Madrid');
+    }
+
+    private function configureStorefront(): void
+    {
+        View::composer('store.*', StoreLayoutComposer::class);
+
+        // Menu, footer and sitemap are cached; refresh them as soon as staff change something.
+        $flush = function (): void {
+            Cache::forget('store.menu');
+            Cache::forget('store.footer');
+            Cache::forget('store.page-slugs');
+            Cache::forget('sitemap.xml');
+            Cache::forget('store.campaign');
+        };
+
+        foreach ([Category::class, Page::class, Product::class, Campaign::class] as $model) {
+            $model::saved($flush);
+            $model::deleted($flush);
+        }
     }
 
     private function configureSafety(): void

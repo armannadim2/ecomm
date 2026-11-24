@@ -1,13 +1,14 @@
 <?php
 
 use App\Domain\Staff\Models\Staff;
+use Database\Seeders\LegalPagesSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
-    ->beforeEach(fn () => $this->seed(RolesAndPermissionsSeeder::class))
+    ->beforeEach(fn () => $this->seed([RolesAndPermissionsSeeder::class, LegalPagesSeeder::class]))
     ->in('Feature');
 
 pest()->extend(TestCase::class)->in('Unit');
