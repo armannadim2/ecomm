@@ -49,6 +49,7 @@ class AdminPanelProvider extends PanelProvider
                 'gray' => Color::Slate,
             ])
             ->navigationGroups([
+                NavigationGroup::make('Pedidos'),
                 NavigationGroup::make('Catálogo'),
                 NavigationGroup::make('Clientes'),
                 NavigationGroup::make('Contenido'),

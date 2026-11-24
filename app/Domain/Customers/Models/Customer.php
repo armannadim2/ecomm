@@ -3,6 +3,7 @@
 namespace App\Domain\Customers\Models;
 
 use App\Domain\Customers\Policies\CustomerPolicy;
+use App\Domain\Orders\Models\Order;
 use Database\Factories\CustomerFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -50,6 +51,12 @@ class Customer extends Authenticatable implements MustVerifyEmail
     public function addresses(): HasMany
     {
         return $this->hasMany(Address::class)->orderByDesc('is_default')->latest('id');
+    }
+
+    /** @return HasMany<Order, $this> */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class)->latest('placed_at');
     }
 
     public function fullName(): string

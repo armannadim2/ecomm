@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Content\Settings\StorefrontContentSettings;
+use App\Domain\Orders\Settings\CheckoutSettings;
 use App\Domain\Store\Settings\StoreSettings;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelSettings\SettingsCasts\DataCast;
@@ -18,6 +19,7 @@ return [
     'settings' => [
         StoreSettings::class,
         StorefrontContentSettings::class,
+        CheckoutSettings::class,
     ],
 
     /*

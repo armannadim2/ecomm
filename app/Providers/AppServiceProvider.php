@@ -6,6 +6,7 @@ use App\Domain\Catalog\Models\Category;
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Content\Models\Page;
 use App\Domain\Marketing\Models\Campaign;
+use App\Domain\Orders\Cart\Cart;
 use App\Domain\Staff\Models\Staff;
 use App\Domain\Staff\Policies\ActivityPolicy;
 use App\Domain\Staff\Policies\RolePolicy;
@@ -28,7 +29,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // One cart per request, so its lines are loaded once even when many views ask for it.
+        $this->app->scoped(Cart::class);
     }
 
     public function boot(): void

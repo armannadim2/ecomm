@@ -53,6 +53,13 @@ final class Permissions
                     'customers.view' => 'Ver clientes',
                 ],
             ],
+            'orders' => [
+                'label' => 'Pedidos',
+                'permissions' => [
+                    'orders.view' => 'Ver pedidos',
+                    'orders.update' => 'Cambiar el estado de los pedidos y cancelarlos',
+                ],
+            ],
             'pages' => [
                 'label' => 'Páginas',
                 'permissions' => [
@@ -136,6 +143,7 @@ final class Permissions
                 ...$catalogAll, ...$pagesEdit, 'pages.delete', 'pages.restore',
                 ...$campaignsEdit, 'campaigns.delete', 'campaigns.restore',
                 'customers.view', 'staff.view', 'activity.view', 'settings.manage',
+                'orders.view', 'orders.update',
             ],
             'Contenido' => [
                 'products.view', 'products.create', 'products.update', 'products.publish',
@@ -147,8 +155,8 @@ final class Permissions
             // Uploads products into the store; an owner/manager reviews them before they go live.
             'Colaborador' => ['products.submit', 'categories.view', 'brands.view'],
             'Almacén' => ['products.view', 'products.stock', 'categories.view', 'brands.view'],
-            'Pedidos' => ['products.view', 'categories.view', 'brands.view', 'customers.view'],
-            'Atención al cliente' => ['products.view', 'categories.view', 'brands.view', 'customers.view'],
+            'Pedidos' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view', 'orders.update'],
+            'Atención al cliente' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view'],
         ];
     }
 }

@@ -60,9 +60,20 @@
             <p class="line-clamp-2 text-xs text-outline">{{ $meta }}</p>
         @endif
         <div class="mt-auto border-t border-outline-variant/40 pt-2">
-            <span class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-secondary py-2 text-xs font-bold text-white shadow-sm transition-colors group-hover:bg-secondary-hover group-has-[a:focus-visible]:outline-2 group-has-[a:focus-visible]:outline-offset-2 group-has-[a:focus-visible]:outline-secondary" aria-hidden="true">
-                @svg('heroicon-o-shopping-cart', 'size-4') {{ Route::has('cart.add') ? __('Añadir a la cesta') : __('Ver producto') }}
-            </span>
+            @if (Route::has('cart.add') && $available && $variants->count() === 1)
+                {{-- Single-option product: add straight to the cart (sits above the stretched card link). --}}
+                <form method="post" action="{{ route('cart.add') }}" class="relative z-10">
+                    @csrf
+                    <input type="hidden" name="variant" value="{{ $variants->first()->ulid }}">
+                    <button type="submit" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-secondary py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-secondary-hover active:scale-[0.98]">
+                        @svg('heroicon-o-shopping-cart', 'size-4') {{ __('Añadir a la cesta') }}<span class="sr-only">: {{ $product->name }}</span>
+                    </button>
+                </form>
+            @else
+                <span class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-secondary py-2 text-xs font-bold text-white shadow-sm transition-colors group-hover:bg-secondary-hover group-has-[a:focus-visible]:outline-2 group-has-[a:focus-visible]:outline-offset-2 group-has-[a:focus-visible]:outline-secondary" aria-hidden="true">
+                    @svg('heroicon-o-shopping-cart', 'size-4') {{ $available ? __('Ver opciones') : __('Ver producto') }}
+                </span>
+            @endif
         </div>
     </div>
 </article>

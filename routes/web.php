@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Store\AccountController;
 use App\Http\Controllers\Store\AuthController;
+use App\Http\Controllers\Store\CartController;
 use App\Http\Controllers\Store\CatalogController;
+use App\Http\Controllers\Store\CheckoutController;
 use App\Http\Controllers\Store\LocaleController;
 use App\Http\Controllers\Store\PageController;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +22,15 @@ Route::get('/pagina/{slug}', [PageController::class, 'show'])->name('store.page'
 Route::get('/sitemap.xml', [PageController::class, 'sitemap'])->name('store.sitemap');
 Route::get('/robots.txt', [PageController::class, 'robots'])->name('store.robots');
 Route::get('/idioma/{locale}', LocaleController::class)->name('locale.switch');
+
+// Cart and checkout
+Route::get('/cesta', [CartController::class, 'show'])->name('cart.show');
+Route::post('/cesta', [CartController::class, 'add'])->name('cart.add')->middleware('throttle:60,1');
+Route::patch('/cesta/{variant}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cesta/{variant}', [CartController::class, 'remove'])->name('cart.remove');
+Route::delete('/cesta', [CartController::class, 'clear'])->name('cart.clear');
+Route::post('/cesta/confirmar', [CheckoutController::class, 'store'])->name('checkout.place')->middleware('throttle:10,1');
+Route::get('/pedido/{order}', [CheckoutController::class, 'show'])->name('order.show');
 
 // Guests only
 Route::middleware('guest:web')->prefix('cuenta')->group(function () {
