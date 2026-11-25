@@ -7,6 +7,7 @@
         $accountLinks = [
             ['account.dashboard', 'heroicon-o-shopping-bag', __('Mis pedidos'), 'account.dashboard'],
             ['account.profile', 'heroicon-o-user', __('Mis datos'), 'account.profile'],
+            ['account.returns', 'heroicon-o-arrow-uturn-left', __('Devoluciones y cambios'), 'account.returns*'],
             ['account.addresses', 'heroicon-o-map-pin', __('Mis direcciones'), 'account.addresses*'],
             ['account.privacy', 'heroicon-o-shield-check', __('Privacidad y datos'), 'account.privacy'],
         ];

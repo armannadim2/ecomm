@@ -60,6 +60,13 @@ final class Permissions
                     'orders.update' => 'Cambiar el estado de los pedidos y cancelarlos',
                 ],
             ],
+            'returns' => [
+                'label' => 'Devoluciones y cambios',
+                'permissions' => [
+                    'returns.view' => 'Ver las solicitudes de devolución y cambio',
+                    'returns.update' => 'Aprobar, rechazar y dar por recibidas o reembolsadas las devoluciones',
+                ],
+            ],
             'integrations' => [
                 'label' => 'Integraciones',
                 'permissions' => [
@@ -158,6 +165,7 @@ final class Permissions
                 ...$campaignsEdit, 'campaigns.delete', 'campaigns.restore',
                 'customers.view', 'staff.view', 'activity.view', 'settings.manage',
                 'orders.view', 'orders.update',
+                'returns.view', 'returns.update',
                 'whatsapp.view', 'whatsapp.reply',
             ],
             'Contenido' => [
@@ -170,8 +178,8 @@ final class Permissions
             // Uploads products into the store; an owner/manager reviews them before they go live.
             'Colaborador' => ['products.submit', 'categories.view', 'brands.view'],
             'Almacén' => ['products.view', 'products.stock', 'categories.view', 'brands.view'],
-            'Pedidos' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view', 'orders.update', 'whatsapp.view', 'whatsapp.reply'],
-            'Atención al cliente' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view', 'whatsapp.view', 'whatsapp.reply'],
+            'Pedidos' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view', 'orders.update', 'returns.view', 'returns.update', 'whatsapp.view', 'whatsapp.reply'],
+            'Atención al cliente' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view', 'returns.view', 'whatsapp.view', 'whatsapp.reply'],
         ];
     }
 }

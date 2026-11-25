@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Domain\Orders\Mail;
+
+use App\Domain\Orders\Models\ReturnRequest;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
+
+/** Tells the customer their return/exchange request moved to a new status (approved, rejected, received, refunded...). */
+class ReturnRequestStatusChanged extends Mailable implements ShouldQueue
+{
+    use OrderMailData, Queueable, SerializesModels;
+
+    public function __construct(public ReturnRequest $returnRequest)
+    {
+        $this->afterCommit();
+    }
+
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            subject: __('Tu solicitud :number: :status', [
+                'number' => $this->returnRequest->number,
+                'status' => mb_strtolower(__($this->returnRequest->status->getLabel())),
+            ]),
+        );
+    }
+
+    public function content(): Content
+    {
+        return new Content(view: 'emails.returns.status', with: [
+            ...$this->orderMailData($this->returnRequest->order),
+            'returnRequest' => $this->returnRequest->load('items'),
+            'created' => false,
+            'accountUrl' => route('account.returns.show', $this->returnRequest),
+        ]);
+    }
+}

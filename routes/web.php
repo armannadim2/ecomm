@@ -9,6 +9,7 @@ use App\Http\Controllers\Store\CatalogController;
 use App\Http\Controllers\Store\CheckoutController;
 use App\Http\Controllers\Store\LocaleController;
 use App\Http\Controllers\Store\PageController;
+use App\Http\Controllers\Store\ReturnRequestController;
 use Filament\Http\Middleware\Authenticate as FilamentAuthenticate;
 use Filament\Http\Middleware\SetUpPanel;
 use Illuminate\Support\Facades\Route;
@@ -71,6 +72,11 @@ Route::middleware('auth:web')->prefix('cuenta')->group(function () {
         Route::get('/direcciones/{address}', [AccountController::class, 'editAddress'])->name('account.addresses.edit');
         Route::put('/direcciones/{address}', [AccountController::class, 'updateAddress'])->name('account.addresses.update');
         Route::delete('/direcciones/{address}', [AccountController::class, 'destroyAddress'])->name('account.addresses.destroy');
+
+        Route::get('/devoluciones', [ReturnRequestController::class, 'index'])->name('account.returns');
+        Route::get('/devoluciones/nueva', [ReturnRequestController::class, 'create'])->name('account.returns.create');
+        Route::post('/devoluciones', [ReturnRequestController::class, 'store'])->middleware('throttle:10,1')->name('account.returns.store');
+        Route::get('/devoluciones/{returnRequest}', [ReturnRequestController::class, 'show'])->name('account.returns.show');
 
         Route::get('/privacidad', [AccountController::class, 'privacy'])->name('account.privacy');
         Route::post('/privacidad/exportar', [AccountController::class, 'exportData'])
