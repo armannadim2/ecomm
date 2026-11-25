@@ -44,7 +44,7 @@ class ManageCheckoutSettings extends SettingsPage
                     Toggle::make('pay_in_store_enabled')->label('Permitir pagar en la tienda al recoger'),
                     PageBlocks::texts([
                         'pickup_note' => ['Plazo de recogida', 'text', false, 'Ej.: «Listo en 2 horas en horario de tienda».'],
-                        'opening_hours' => ['Horario de la tienda', 'text', false, 'Ej.: «Lunes a sábado: 09:30 - 20:30 h».'],
+                        'opening_hours' => ['Horario de la tienda', 'text', false, 'Ej.: «Lunes a domingo: 10:00 - 21:00 h».'],
                     ]),
                 ]),
             Section::make('Envío a domicilio')

@@ -105,9 +105,9 @@ final class DefaultContent
                     ],
                     'mosaic' => 'newest',
                     'mosaic_badge' => [
-                        'es' => 'Gran de Gràcia, BCN',
-                        'ca' => 'Gran de Gràcia, BCN',
-                        'en' => 'Gran de Gràcia, BCN',
+                        'es' => 'Av. Meridiana 507, BCN',
+                        'ca' => 'Av. Meridiana 507, BCN',
+                        'en' => 'Av. Meridiana 507, BCN',
                     ],
                 ],
             ],
@@ -271,14 +271,14 @@ final class DefaultContent
                                 'en' => 'Location & Opening Hours',
                             ],
                             'text' => [
-                                'es' => 'Carrer Gran de Gràcia (cerca de Metro Diagonal y Fontana), Barcelona. Amplia tienda con más de 400 m² de exposición.',
-                                'ca' => 'Carrer Gran de Gràcia (a prop del Metro Diagonal i Fontana), Barcelona. Àmplia botiga amb més de 400 m² d\'exposició.',
-                                'en' => 'Carrer Gran de Gràcia (near Diagonal and Fontana metro), Barcelona. A large shop with over 400 m² of display space.',
+                                'es' => 'Avinguda Meridiana 507, Local 2, 08016 Barcelona. Amplia tienda con más de 400 m² de exposición.',
+                                'ca' => 'Avinguda Meridiana 507, Local 2, 08016 Barcelona. Àmplia botiga amb més de 400 m² d\'exposició.',
+                                'en' => 'Avinguda Meridiana 507, Local 2, 08016 Barcelona. A large shop with over 400 m² of display space.',
                             ],
                             'highlight_title' => [
-                                'es' => 'Lunes a Sábado: 09:30 - 20:30 h',
-                                'ca' => 'Dilluns a dissabte: 09:30 - 20:30 h',
-                                'en' => 'Monday to Saturday: 09:30 - 20:30',
+                                'es' => 'Lunes a domingo: 10:00 - 21:00 h',
+                                'ca' => 'Dilluns a diumenge: 10:00 - 21:00 h',
+                                'en' => 'Monday to Sunday: 10:00 - 21:00',
                             ],
                             'highlight_text' => [
                                 'es' => 'Abierto ininterrumpidamente',
@@ -402,16 +402,16 @@ final class DefaultContent
                 ],
                 'code' => 'TOTSPRING',
                 'pill' => [
-                    'es' => 'Tienda abierta hoy hasta 20:30 h',
-                    'ca' => 'Botiga oberta avui fins a les 20:30 h',
-                    'en' => 'Shop open today until 20:30',
+                    'es' => 'Tienda abierta hoy hasta 21:00 h',
+                    'ca' => 'Botiga oberta avui fins a les 21:00 h',
+                    'en' => 'Shop open today until 21:00',
                 ],
             ],
             'header' => [
                 'store_pill' => [
-                    'es' => 'Tienda Barcelona (Gran de Gràcia)',
-                    'ca' => 'Botiga Barcelona (Gran de Gràcia)',
-                    'en' => 'Barcelona shop (Gran de Gràcia)',
+                    'es' => 'Tienda Barcelona (Av. Meridiana)',
+                    'ca' => 'Botiga Barcelona (Av. Meridiana)',
+                    'en' => 'Barcelona shop (Av. Meridiana)',
                 ],
                 'store_pill_url' => '#contacto',
                 'search_placeholder' => [
@@ -473,9 +473,9 @@ final class DefaultContent
                     'en' => 'Big bazaar and multi-store in Barcelona. Over 15,000 products for your home, kitchen, stationery, DIY and leisure. Now selling online at totymes.com with in-store Click & Collect or fast delivery.',
                 ],
                 'chip_location' => [
-                    'es' => 'Tienda en Barcelona (Gran de Gràcia)',
-                    'ca' => 'Botiga a Barcelona (Gran de Gràcia)',
-                    'en' => 'Shop in Barcelona (Gran de Gràcia)',
+                    'es' => 'Tienda en Barcelona (Av. Meridiana)',
+                    'ca' => 'Botiga a Barcelona (Av. Meridiana)',
+                    'en' => 'Shop in Barcelona (Av. Meridiana)',
                 ],
                 'chip_web' => 'totymes.com',
                 'columns' => [

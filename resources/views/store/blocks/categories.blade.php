@@ -4,12 +4,12 @@
     <section id="categorias" class="mx-auto w-full max-w-[1280px] scroll-mt-48 px-4 py-8 lg:px-12" aria-labelledby="{{ $block->key }}-title">
         <div class="mb-6 flex items-end justify-between gap-4">
             <div>
-                @if ($block->has('eyebrow'))<p class="text-xs font-extrabold uppercase tracking-wider text-secondary">{{ $block->text('eyebrow') }}</p>@endif
-                <h2 id="{{ $block->key }}-title" class="text-2xl font-extrabold text-primary sm:text-3xl">{{ $block->text('title') }}</h2>
+                @if ($block->has('eyebrow'))<p class="text-xs font-extrabold uppercase tracking-wider text-secondary">{{ $block->editable('eyebrow') }}</p>@endif
+                <h2 id="{{ $block->key }}-title" class="text-2xl font-extrabold text-primary sm:text-3xl">{{ $block->editable('title') }}</h2>
             </div>
             @if ($block->has('link_label'))
                 <a href="{{ route('store.category', $categories->first()->slug) }}" class="hidden items-center gap-1 text-sm font-bold text-secondary transition-colors hover:text-secondary-hover sm:inline-flex">
-                    <span>{{ $block->text('link_label') }}</span> @svg('heroicon-o-arrow-right', 'size-[18px]')
+                    <span>{{ $block->editable('link_label') }}</span> @svg('heroicon-o-arrow-right', 'size-[18px]')
                 </a>
             @endif
         </div>

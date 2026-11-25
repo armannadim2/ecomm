@@ -7,7 +7,7 @@
 --}}
 
 @if ($page?->seo_description)
-    @section('description', $page->seo_description)
+    @section('description', (string) $page->seo_description)
 @endif
 
 @section('fullBleed', true)
@@ -21,7 +21,7 @@
     @foreach ($blocks as $block)
         {{-- Only the first hero title is the page <h1>. --}}
         @php $level = ($block->type === \App\Domain\Content\Blocks\BlockTypes::HERO && ! $heroDone) ? 1 : 2; @endphp
-        @include('store.blocks.'.$block->type, ['block' => $block, 'headingLevel' => $level])
+        @include('store.blocks._render', ['block' => $block, 'headingLevel' => $level])
         @php $heroDone = $heroDone || $block->type === \App\Domain\Content\Blocks\BlockTypes::HERO; @endphp
     @endforeach
 @endsection

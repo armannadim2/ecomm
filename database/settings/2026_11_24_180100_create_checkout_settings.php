@@ -18,9 +18,9 @@ return new class extends SettingsMigration
             'en' => 'Ready in 2 hours during opening hours · Priority counter, no queues',
         ]);
         $this->migrator->add('checkout.opening_hours', [
-            'es' => 'Horario ininterrumpido: 09:30 - 20:30 h (lunes a sábado)',
-            'ca' => 'Horari ininterromput: 09:30 - 20:30 h (dilluns a dissabte)',
-            'en' => 'Open all day: 09:30 - 20:30 (Monday to Saturday)',
+            'es' => 'Horario ininterrumpido: 10:00 - 21:00 h (lunes a domingo)',
+            'ca' => 'Horari ininterromput: 10:00 - 21:00 h (dilluns a diumenge)',
+            'en' => 'Open all day: 10:00 - 21:00 (Monday to Sunday)',
         ]);
     }
 };

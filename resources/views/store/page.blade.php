@@ -7,7 +7,7 @@
 --}}
 
 @section('title', $page->title)
-@section('description', $page->seo_description)
+@section('description', (string) $page->seo_description)
 @section('canonical', route('store.page', $page->slug))
 @section('fullBleed', true)
 
@@ -25,6 +25,6 @@
     @endif
 
     @foreach ($blocks as $block)
-        @include('store.blocks.'.$block->type, ['block' => $block, 'headingLevel' => 2])
+        @include('store.blocks._render', ['block' => $block, 'headingLevel' => 2])
     @endforeach
 @endsection

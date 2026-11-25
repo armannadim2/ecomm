@@ -81,7 +81,7 @@ class ManageStorefrontContent extends SettingsPage
                     PageBlocks::texts([
                         'announcement.text' => ['Mensaje principal (negrita)', 'text', true],
                         'announcement.extra' => ['Segundo mensaje', 'text', false, 'Ej.: «Envío gratis en Barcelona > 25€ • Código:»'],
-                        'announcement.pill' => ['Pastilla de la derecha', 'text', false, 'Ej.: «Tienda abierta hoy hasta 20:30 h». Vacío = no se muestra.'],
+                        'announcement.pill' => ['Pastilla de la derecha', 'text', false, 'Ej.: «Tienda abierta hoy hasta 21:00 h». Vacío = no se muestra.'],
                     ]),
                     TextInput::make('announcement.code')->label('Código promocional')->maxLength(30)
                         ->helperText('Se muestra en un recuadro después del segundo mensaje. Vacío = sin código.'),
@@ -92,7 +92,7 @@ class ManageStorefrontContent extends SettingsPage
                 ->schema([
                     PageBlocks::texts([
                         'header.tagline' => ['Texto bajo el logo', 'text', false, 'Ej.: «Tienda · Online»'],
-                        'header.store_pill' => ['Botón de la tienda física', 'text', false, 'Ej.: «Tienda Barcelona (Gran de Gràcia)». Vacío = no se muestra.'],
+                        'header.store_pill' => ['Botón de la tienda física', 'text', false, 'Ej.: «Tienda Barcelona (Av. Meridiana)». Vacío = no se muestra.'],
                         'header.search_placeholder' => ['Texto de ejemplo del buscador'],
                     ]),
                     PageBlocks::url('header.store_pill_url', 'Enlace del botón de la tienda física')
@@ -119,7 +119,7 @@ class ManageStorefrontContent extends SettingsPage
                 ->schema([
                     PageBlocks::texts([
                         'footer.about' => ['Texto bajo el logo', 'textarea'],
-                        'footer.chip_location' => ['Pastilla de ubicación', 'text', false, 'Ej.: «Tienda en Barcelona (Gran de Gràcia)»'],
+                        'footer.chip_location' => ['Pastilla de ubicación', 'text', false, 'Ej.: «Tienda en Barcelona (Av. Meridiana)»'],
                         'footer.copyright' => ['Línea de copyright', 'text', true, 'Usa [año] y [empresa] (nombre legal de «Datos de la tienda»).'],
                         'footer.payments_note' => ['Nota de pagos (abajo a la derecha)'],
                         'footer.carriers_note' => ['Nota de transportistas'],

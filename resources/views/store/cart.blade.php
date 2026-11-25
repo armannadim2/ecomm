@@ -471,7 +471,7 @@
             {{-- Bottom trust band --}}
             <section class="mt-10 grid grid-cols-1 gap-4 pt-6 md:grid-cols-3" aria-label="{{ __('Garantías') }}">
                 @foreach ([
-                    ['heroicon-o-building-storefront', __('Tienda física en Gràcia'), __('Gran superficie de barrio de referencia desde hace más de 25 años.'), 'text-primary'],
+                    ['heroicon-o-building-storefront', __('Tienda física en Av. Meridiana'), __('Gran superficie de barrio de referencia desde hace más de 25 años.'), 'text-primary'],
                     ['heroicon-o-arrows-right-left', __('Cambios fáciles y rápidos'), __('Trae tu tique a la tienda o solicita la recogida a domicilio.'), 'text-secondary'],
                     ['heroicon-o-check-badge', __('Atención vecinal personalizada'), __('Llámanos o escríbenos antes de finalizar tu pedido.'), 'text-success'],
                 ] as [$icon, $title, $text, $colour])

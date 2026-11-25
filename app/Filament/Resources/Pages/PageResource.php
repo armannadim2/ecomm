@@ -7,7 +7,9 @@ use App\Filament\Blocks\PageBlocks;
 use App\Filament\Resources\Pages\Pages\CreatePage;
 use App\Filament\Resources\Pages\Pages\EditPage;
 use App\Filament\Resources\Pages\Pages\ListPages;
+use App\Filament\Resources\Pages\Pages\VisualEditor;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\RestoreAction;
@@ -124,7 +126,13 @@ class PageResource extends Resource
             ])
             ->filters([TrashedFilter::make()->label('Papelera')])
             ->recordActions([
-                EditAction::make(),
+                Action::make('design')
+                    ->label('Editor visual')
+                    ->icon('heroicon-o-paint-brush')
+                    ->color('primary')
+                    ->url(fn (Page $record) => static::getUrl('editor', ['record' => $record]))
+                    ->visible(fn (Page $record) => auth()->user()->can('update', $record)),
+                EditAction::make()->label('Ajustes'),
                 DeleteAction::make()->label('Enviar a la papelera')->hidden(fn (Page $record) => $record->isHome()),
                 RestoreAction::make(),
             ]);
@@ -136,6 +144,7 @@ class PageResource extends Resource
             'index' => ListPages::route('/'),
             'create' => CreatePage::route('/create'),
             'edit' => EditPage::route('/{record}/edit'),
+            'editor' => VisualEditor::route('/{record}/editor'),
         ];
     }
 

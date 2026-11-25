@@ -66,7 +66,7 @@ final class PageBlocks
                     'text' => ['Texto', 'textarea'],
                     'primary_label' => ['Texto del botón naranja'],
                     'secondary_label' => ['Texto del botón blanco'],
-                    'mosaic_badge' => ['Etiqueta de la última foto del mosaico', 'text', false, 'Ej.: «Gran de Gràcia, BCN»'],
+                    'mosaic_badge' => ['Etiqueta de la última foto del mosaico', 'text', false, 'Ej.: «Av. Meridiana 507, BCN»'],
                 ]),
                 Grid::make(2)->schema([
                     self::url('primary_url', 'Enlace del botón naranja'),
@@ -265,9 +265,59 @@ final class PageBlocks
             ->addActionLabel('Añadir tarjeta');
     }
 
+    /**
+     * Form of one block type, for the visual editor side panel (state path = the block's data).
+     *
+     * @return list<mixed>
+     */
+    public static function schemaFor(string $type): array
+    {
+        self::$schemas = [];
+        self::blocks();
+
+        return self::$schemas[$type] ?? [];
+    }
+
+    /** "Diseño" options shared by every block: background band, spacing, devices. */
+    public static function design(): Section
+    {
+        return Section::make('Diseño')
+            ->icon(Heroicon::OutlinedSwatch)
+            ->collapsible()
+            ->collapsed()
+            ->compact()
+            ->columns(2)
+            ->schema([
+                Select::make('style.background')->label('Fondo de la franja')
+                    ->options(['none' => 'Sin fondo (crema)', 'white' => 'Blanco', 'cream' => 'Crema oscuro', 'peach' => 'Melocotón'])
+                    ->default('none')->selectablePlaceholder(false),
+                Select::make('style.visibility')->label('Mostrar en')
+                    ->options(['all' => 'Ordenador y móvil', 'desktop' => 'Solo ordenador', 'mobile' => 'Solo móvil'])
+                    ->default('all')->selectablePlaceholder(false),
+                Select::make('style.spacing_top')->label('Espacio arriba')
+                    ->options(['none' => 'Pegado', 'normal' => 'Normal', 'large' => 'Grande'])
+                    ->default('normal')->selectablePlaceholder(false),
+                Select::make('style.spacing_bottom')->label('Espacio abajo')
+                    ->options(['none' => 'Pegado', 'normal' => 'Normal', 'large' => 'Grande'])
+                    ->default('normal')->selectablePlaceholder(false),
+            ]);
+    }
+
+    /** @var array<string, list<mixed>> */
+    private static array $schemas = [];
+
     /** @param  list<mixed>  $schema */
     private static function block(string $type, string $label, Heroicon $icon, string $description, array $schema): Block
     {
+        $fields = [
+            ...$schema,
+            self::design(),
+            Toggle::make('is_hidden')->label('Ocultar este bloque en la tienda')
+                ->helperText('Se guarda, pero no se muestra.'),
+        ];
+
+        self::$schemas[$type] = $fields;
+
         return Block::make($type)
             ->label(function (?array $state) use ($label) {
                 $title = Str::limit(strip_tags((string) ($state['title']['es'] ?? $state['label']['es'] ?? '')), 50);
@@ -276,11 +326,7 @@ final class PageBlocks
             })
             ->icon($icon)
             ->schema([
-                Section::make()->description($description)->compact()->schema([
-                    ...$schema,
-                    Toggle::make('is_hidden')->label('Ocultar este bloque en la tienda')
-                        ->helperText('Se guarda, pero no se muestra.'),
-                ]),
+                Section::make()->description($description)->compact()->schema($fields),
             ]);
     }
 }

@@ -17,8 +17,13 @@ class EditPage extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('design')
+                ->label('Abrir editor visual')
+                ->icon('heroicon-o-paint-brush')
+                ->url(fn () => PageResource::getUrl('editor', ['record' => $this->getRecord()])),
             Action::make('view')
                 ->label('Ver en la tienda')
+                ->color('gray')
                 ->icon('heroicon-o-arrow-top-right-on-square')
                 ->url(fn () => $this->getRecord()->isHome()
                     ? route('store.home')

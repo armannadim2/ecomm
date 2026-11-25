@@ -22,7 +22,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * Bodies may contain placeholders like [nombre_legal] or [nif] that are
  * filled from the store settings when the page is shown.
  */
-#[Fillable(['title', 'slug', 'body', 'blocks', 'type', 'is_published', 'show_in_footer', 'position', 'seo_description'])]
+#[Fillable(['title', 'slug', 'body', 'blocks', 'draft_blocks', 'draft_saved_at', 'type', 'is_published', 'show_in_footer', 'position', 'seo_description'])]
 #[UsePolicy(PagePolicy::class)]
 class Page extends Model
 {
@@ -58,6 +58,8 @@ class Page extends Model
             'show_in_footer' => 'boolean',
             'position' => 'integer',
             'blocks' => 'array',
+            'draft_blocks' => 'array',
+            'draft_saved_at' => 'datetime',
         ];
     }
 

@@ -17,7 +17,7 @@ final class BlockRenderer
      * @param  array<int, array{type?: string, data?: array<string, mixed>}>|null  $raw
      * @return list<Block>
      */
-    public function prepare(?array $raw): array
+    public function prepare(?array $raw, bool $includeHidden = false): array
     {
         $blocks = [];
 
@@ -25,11 +25,12 @@ final class BlockRenderer
             $type = $item['type'] ?? null;
             $data = $item['data'] ?? [];
 
-            if (! in_array($type, BlockTypes::TYPES, true) || ! empty($data['is_hidden'])) {
+            if (! in_array($type, BlockTypes::TYPES, true) || (! $includeHidden && ! empty($data['is_hidden']))) {
                 continue;
             }
 
-            $block = new Block($type, $data, $type.'-'.$index);
+            $block = new Block($type, $data, $type.'-'.$index, $index.'.');
+            $block->index = $index;
             $block->payload = $this->payload($block);
             $blocks[] = $block;
         }

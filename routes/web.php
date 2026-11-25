@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\PageEditorPreviewController;
 use App\Http\Controllers\Store\AccountController;
 use App\Http\Controllers\Store\AuthController;
 use App\Http\Controllers\Store\CartController;
@@ -7,6 +8,8 @@ use App\Http\Controllers\Store\CatalogController;
 use App\Http\Controllers\Store\CheckoutController;
 use App\Http\Controllers\Store\LocaleController;
 use App\Http\Controllers\Store\PageController;
+use Filament\Http\Middleware\Authenticate as FilamentAuthenticate;
+use Filament\Http\Middleware\SetUpPanel;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -73,3 +76,8 @@ Route::middleware('auth:web')->prefix('cuenta')->group(function () {
         Route::delete('/', [AccountController::class, 'destroyAccount'])->name('account.destroy');
     });
 });
+
+// Visual page editor: live preview of the staff member's draft (iframe inside the admin).
+Route::get('/admin/editor/vista-previa/{page}', PageEditorPreviewController::class)
+    ->middleware([SetUpPanel::class.':admin', FilamentAuthenticate::class])
+    ->name('admin.page-editor.preview');

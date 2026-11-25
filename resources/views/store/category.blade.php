@@ -3,7 +3,7 @@
 {{-- Variables: $category (with parent, children), $products (paginator), $sorts (key => label), $currentSort --}}
 
 @section('title', $category->seo_title ?: $category->name)
-@section('description', $category->seo_description ?: $category->description)
+@section('description', (string) ($category->seo_description ?: $category->description))
 @section('canonical', route('store.category', $category->slug))
 
 @section('content')

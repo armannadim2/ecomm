@@ -31,7 +31,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@hasSection('title')@yield('title') · @endif{{ $store->store_name }}</title>
-    <meta name="description" content="@yield('description', $store->tagline)">
+    {{-- Views always give a string (a null value would open a section that is never closed). --}}
+    @php $metaDescription = trim($__env->yieldContent('description')); @endphp
+    <meta name="description" content="{!! $metaDescription !== '' ? $metaDescription : e($store->tagline) !!}">
     <link rel="canonical" href="@yield('canonical', url()->current())">
     <meta name="theme-color" content="#1b2942">
     <meta property="og:site_name" content="{{ $store->store_name }}">
@@ -39,13 +41,17 @@
     <meta property="og:url" content="@yield('canonical', url()->current())">
     <meta property="og:locale" content="{{ ['es' => 'es_ES', 'ca' => 'ca_ES', 'en' => 'en_GB'][$currentLocale] ?? 'es_ES' }}">
     @stack('head')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @php $pageEditing = \App\Domain\Content\Blocks\PageEditing::active(); @endphp
+    @vite(array_filter(['resources/css/app.css', 'resources/js/app.js', $pageEditing ? 'resources/js/page-editor-preview.js' : null]))
+    @if ($pageEditing)
+        <meta name="robots" content="noindex, nofollow">
+    @endif
     @livewireStyles
 </head>
-{{-- Campaign effect (snow, confetti…) runs on the home page only. --}}
-<body class="flex min-h-screen flex-col bg-surface"
+{{-- Campaign effect (snow, confetti…) runs on the home page only, never in the visual editor preview. --}}
+<body @class(['flex min-h-screen flex-col bg-surface', 'pb-editing' => $pageEditing])
       @if ($campaign) style="--campaign-accent: {{ $campaign->accent_color }}" @endif
-      @if ($campaign && request()->routeIs('store.home')) data-campaign-effect="{{ $campaign->effect->value }}" @endif>
+      @if ($campaign && request()->routeIs('store.home') && ! $pageEditing) data-campaign-effect="{{ $campaign->effect->value }}" @endif>
     <a href="#contenido" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-xl focus:bg-white focus:px-4 focus:py-2 focus:text-secondary focus:shadow-lg">
         {{ __('Saltar al contenido') }}
     </a>

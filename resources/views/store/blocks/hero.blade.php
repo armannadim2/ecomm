@@ -20,29 +20,29 @@
                 @if ($block->has('eyebrow'))
                     <span class="inline-flex items-center gap-2 rounded-full border border-secondary/20 bg-white px-3.5 py-1.5 font-bold text-secondary shadow-sm">
                         @svg('heroicon-o-building-storefront', 'size-[18px]')
-                        <span class="text-xs uppercase tracking-wider">{{ $block->text('eyebrow') }}</span>
+                        <span class="text-xs uppercase tracking-wider">{{ $block->editable('eyebrow') }}</span>
                     </span>
                 @endif
                 @if ($block->has('title'))
                     @if (($headingLevel ?? 1) === 1)
-                        <h1 class="text-3xl font-extrabold leading-[1.15] tracking-tight text-primary sm:text-4xl lg:text-5xl">{{ $block->text('title') }}</h1>
+                        <h1 class="text-3xl font-extrabold leading-[1.15] tracking-tight text-primary sm:text-4xl lg:text-5xl">{{ $block->editable('title') }}</h1>
                     @else
-                        <h2 class="text-3xl font-extrabold leading-[1.15] tracking-tight text-primary sm:text-4xl lg:text-5xl">{{ $block->text('title') }}</h2>
+                        <h2 class="text-3xl font-extrabold leading-[1.15] tracking-tight text-primary sm:text-4xl lg:text-5xl">{{ $block->editable('title') }}</h2>
                     @endif
                 @endif
                 @if ($block->has('text'))
-                    <p class="max-w-xl text-base leading-relaxed text-on-surface-variant sm:text-lg">{{ $block->text('text') }}</p>
+                    <p class="max-w-xl text-base leading-relaxed text-on-surface-variant sm:text-lg">{{ $block->editable('text') }}</p>
                 @endif
                 @if (($primary && $block->has('primary_label')) || ($secondary && $block->has('secondary_label')))
                     <div class="flex flex-wrap items-center gap-3 pt-2">
                         @if ($primary && $block->has('primary_label'))
                             <a @include('store.blocks._link', ['url' => $primary]) class="flex items-center gap-2 rounded-2xl bg-secondary px-6 py-3.5 text-sm font-bold text-white shadow-cta transition-all hover:bg-secondary-hover hover:shadow-xl active:scale-[0.98]">
-                                @svg('heroicon-o-shopping-bag', 'size-5') <span>{{ $block->text('primary_label') }}</span>
+                                @svg('heroicon-o-shopping-bag', 'size-5') <span>{{ $block->editable('primary_label') }}</span>
                             </a>
                         @endif
                         @if ($secondary && $block->has('secondary_label'))
                             <a @include('store.blocks._link', ['url' => $secondary]) class="flex items-center gap-2 rounded-2xl border border-outline-variant bg-white px-6 py-3.5 text-sm font-bold text-primary shadow-sm transition-all hover:bg-surface-container-low hover:shadow-md">
-                                @svg('heroicon-o-map', 'size-5 text-secondary') <span>{{ $block->text('secondary_label') }}</span>
+                                @svg('heroicon-o-map', 'size-5 text-secondary') <span>{{ $block->editable('secondary_label') }}</span>
                             </a>
                         @endif
                     </div>
@@ -51,8 +51,8 @@
                     <dl class="mt-2 grid w-full max-w-lg grid-cols-3 gap-6 border-t border-outline-variant/60 pt-6">
                         @foreach ($stats as $stat)
                             <div class="flex flex-col-reverse">
-                                <dt class="mt-0.5 text-xs font-medium text-outline">{{ $stat->text('label') }}</dt>
-                                <dd @class(['text-2xl font-extrabold', $statColours[$loop->index] ?? 'text-primary'])>{{ $stat->text('value') }}</dd>
+                                <dt class="mt-0.5 text-xs font-medium text-outline">{{ $stat->editable('label') }}</dt>
+                                <dd @class(['text-2xl font-extrabold', $statColours[$loop->index] ?? 'text-primary'])>{{ $stat->editable('value') }}</dd>
                             </div>
                         @endforeach
                     </dl>
@@ -78,7 +78,7 @@
                                                 <span class="absolute right-2 top-2 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">{{ __('Novedad') }}</span>
                                             @endif
                                             @if ($slot === 3 && $block->has('mosaic_badge'))
-                                                <span class="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-xs font-bold text-white shadow-md">🏪 {{ $block->text('mosaic_badge') }}</span>
+                                                <span class="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-xs font-bold text-white shadow-md">🏪 {{ $block->editable('mosaic_badge') }}</span>
                                             @elseif ($slot !== 1)
                                                 <span class="absolute bottom-2 left-2 max-w-[85%] rounded-lg border border-outline-variant/40 bg-white/95 px-2.5 py-1 backdrop-blur-md">
                                                     <span class="line-clamp-1 text-xs font-semibold text-primary">{{ $tile['name'] }}</span>

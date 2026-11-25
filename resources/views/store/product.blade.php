@@ -33,7 +33,7 @@
 @endphp
 
 @section('title', $product->seo_title ?: $product->name)
-@section('description', $product->seo_description ?: $product->short_description)
+@section('description', (string) ($product->seo_description ?: $product->short_description))
 @section('canonical', route('store.product', $product->slug))
 @section('fullBleed', true)
 

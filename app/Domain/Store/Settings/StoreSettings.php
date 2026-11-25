@@ -53,7 +53,7 @@ class StoreSettings extends Settings
         return collect([
             $this->address_line,
             trim(($this->postal_code ?? '').' '.($this->city ?? '')),
-            $this->province,
+            $this->province !== $this->city ? $this->province : null, // avoid "Barcelona, Barcelona"
             'España',
         ])->filter()->implode(', ');
     }
