@@ -48,11 +48,11 @@
                     </div>
                 @endif
                 @if ($stats !== [])
-                    <dl class="mt-2 grid w-full max-w-lg grid-cols-3 gap-6 border-t border-outline-variant/60 pt-6">
+                    <dl class="no-scrollbar mt-2 flex w-full gap-2 overflow-x-auto sm:grid sm:max-w-lg sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:border-t sm:border-outline-variant/60 sm:pt-6">
                         @foreach ($stats as $stat)
-                            <div class="flex flex-col-reverse">
-                                <dt class="mt-0.5 text-xs font-medium text-outline">{{ $stat->editable('label') }}</dt>
-                                <dd @class(['text-2xl font-extrabold', $statColours[$loop->index] ?? 'text-primary'])>{{ $stat->editable('value') }}</dd>
+                            <div class="flex shrink-0 flex-row-reverse items-baseline justify-end gap-1.5 rounded-xl border border-outline-variant/60 bg-white px-3 py-2 shadow-sm sm:flex-col-reverse sm:items-start sm:gap-0 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+                                <dt class="text-xs font-semibold text-on-surface sm:mt-0.5 sm:font-medium sm:text-outline">{{ $stat->editable('label') }}</dt>
+                                <dd @class(['text-base font-extrabold sm:text-2xl', $statColours[$loop->index] ?? 'text-primary'])>{{ $stat->editable('value') }}</dd>
                             </div>
                         @endforeach
                     </dl>
@@ -60,7 +60,7 @@
             </div>
 
             @if ($mosaic->isNotEmpty())
-                <div class="relative lg:col-span-5">
+                <div class="relative hidden sm:block lg:col-span-5">
                     <div class="grid grid-cols-2 gap-3.5">
                         @foreach ([[0, 1], [2, 3]] as $col => $slots)
                             <div @class(['flex flex-col gap-3.5', 'pt-6' => $col === 1])>

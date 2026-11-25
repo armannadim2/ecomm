@@ -60,6 +60,12 @@ final class Permissions
                     'orders.update' => 'Cambiar el estado de los pedidos y cancelarlos',
                 ],
             ],
+            'integrations' => [
+                'label' => 'Integraciones',
+                'permissions' => [
+                    'integrations.manage' => 'Gestionar claves API y webhooks (TPV, ERP, otras webs)',
+                ],
+            ],
             'pages' => [
                 'label' => 'Páginas',
                 'permissions' => [

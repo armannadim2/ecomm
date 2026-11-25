@@ -116,6 +116,20 @@ class Order extends Model
         return preg_replace('/^<\?xml[^>]*>\s*/', '', $svg);
     }
 
+    /** The same QR as a PNG (binary), for e-mails: most mail apps do not show inline SVG. */
+    public function pickupQrPng(): ?string
+    {
+        if (! $this->pickup_code) {
+            return null;
+        }
+
+        return (new QRCode(new QROptions([
+            'outputType' => QROutputInterface::GDIMAGE_PNG,
+            'outputBase64' => false,
+            'scale' => 8,
+        ])))->render($this->pickup_code);
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

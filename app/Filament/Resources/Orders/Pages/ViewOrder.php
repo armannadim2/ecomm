@@ -3,11 +3,13 @@
 namespace App\Filament\Resources\Orders\Pages;
 
 use App\Domain\Orders\Actions\ChangeOrderStatus;
+use App\Domain\Orders\Enums\Fulfillment;
 use App\Domain\Orders\Enums\OrderStatus;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Shared\Exceptions\DomainRuleException;
 use App\Filament\Resources\Orders\OrderResource;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -72,6 +74,15 @@ class ViewOrder extends ViewRecord
                 ->icon('heroicon-o-arrow-top-right-on-square')
                 ->color('gray')
                 ->url(fn () => URL::temporarySignedRoute('order.show', now()->addHour(), $order), shouldOpenInNewTab: true),
+            ActionGroup::make([
+                Action::make('mailPlaced')
+                    ->label('Correo de confirmación')
+                    ->url(fn () => route('admin.order-mail.preview', [$order, 'confirmacion']), shouldOpenInNewTab: true),
+                Action::make('mailReady')
+                    ->label('Correo «Listo para recoger»')
+                    ->visible($order->fulfillment === Fulfillment::Pickup)
+                    ->url(fn () => route('admin.order-mail.preview', [$order, 'listo-para-recoger']), shouldOpenInNewTab: true),
+            ])->label('Ver correos')->icon('heroicon-o-envelope')->color('gray')->button(),
         ];
     }
 }

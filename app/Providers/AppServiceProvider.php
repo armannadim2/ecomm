@@ -4,20 +4,26 @@ namespace App\Providers;
 
 use App\Domain\Catalog\Models\Category;
 use App\Domain\Catalog\Models\Product;
+use App\Domain\Catalog\Models\ProductVariant;
 use App\Domain\Content\Models\Page;
+use App\Domain\Integrations\WebhookObserver;
 use App\Domain\Marketing\Models\Campaign;
 use App\Domain\Orders\Cart\Cart;
+use App\Domain\Orders\Models\Order;
 use App\Domain\Staff\Models\Staff;
 use App\Domain\Staff\Policies\ActivityPolicy;
 use App\Domain\Staff\Policies\RolePolicy;
 use App\Http\View\StoreLayoutComposer;
 use Filament\Support\Facades\FilamentTimezone;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -39,9 +45,21 @@ class AppServiceProvider extends ServiceProvider
         $this->configureAuthorization();
         $this->configureAuditing();
         $this->configureStorefront();
+        $this->configureApi();
 
         // Dates are stored in UTC and shown to staff in Spanish time.
         FilamentTimezone::set('Europe/Madrid');
+    }
+
+    /** REST API for outside systems: 120 requests a minute per API key; webhooks on catalog and order changes. */
+    private function configureApi(): void
+    {
+        RateLimiter::for('api-clients', fn (Request $request) => Limit::perMinute(120)
+            ->by('api-client:'.($request->user()?->getKey() ?? $request->ip())));
+
+        Product::observe(WebhookObserver::class);
+        ProductVariant::observe(WebhookObserver::class);
+        Order::observe(WebhookObserver::class);
     }
 
     private function configureStorefront(): void

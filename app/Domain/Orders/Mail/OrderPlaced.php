@@ -10,12 +10,11 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\URL;
 
-/** Order confirmation for the customer, in the language they used at checkout. */
+/** Order receipt for the customer (Stitch "Email Receipt"), in the language they used at checkout. */
 class OrderPlaced extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use OrderMailData, Queueable, SerializesModels;
 
     public function __construct(public Order $order)
     {
@@ -34,11 +33,6 @@ class OrderPlaced extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
-        return new Content(markdown: 'emails.orders.placed', with: [
-            'order' => $this->order->loadMissing('items'),
-            'store' => app(StoreSettings::class),
-            // Signed link: lets a guest open the order page from the e-mail.
-            'url' => URL::signedRoute('order.show', $this->order),
-        ]);
+        return new Content(view: 'emails.orders.placed', with: $this->orderMailData($this->order));
     }
 }

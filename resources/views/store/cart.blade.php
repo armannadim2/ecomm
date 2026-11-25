@@ -25,6 +25,7 @@
 
 @section('title', __('Mi cesta'))
 @section('fullBleed', true)
+@section('compactHeader', true)
 
 @push('head')
     <meta name="robots" content="noindex">
@@ -70,29 +71,29 @@
             <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
                 {{-- LEFT: the order process --}}
                 <div class="flex flex-col gap-6 lg:col-span-8">
-                    <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+                    <div class="flex flex-row items-end justify-between gap-2">
                         <div>
-                            <div class="mb-1 flex flex-wrap items-center gap-2">
+                            <div class="mb-1 hidden flex-wrap items-center gap-2 sm:flex">
                                 <span class="rounded-full bg-secondary-container px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-secondary">{{ __('Cesta verificada') }}</span>
                                 <span class="inline-flex items-center gap-1 rounded-full bg-success-container px-2.5 py-0.5 text-[11px] font-bold text-on-success-fixed-variant">
                                     <span class="size-2 rounded-full bg-success" aria-hidden="true"></span>{{ __('En stock') }}
                                 </span>
                             </div>
-                            <h1 class="text-2xl font-extrabold tracking-tight text-primary sm:text-[32px] sm:leading-10">{{ __('Mi cesta y pago seguro') }}</h1>
+                            <h1 class="text-2xl font-extrabold tracking-tight text-primary sm:text-[32px] sm:leading-10"><span class="sm:hidden">{{ __('Mi cesta') }}</span><span class="hidden sm:inline">{{ __('Mi cesta y pago seguro') }}</span></h1>
                         </div>
-                        <span class="self-start whitespace-nowrap rounded-lg bg-surface-container-low px-3 py-1.5 text-sm font-bold text-on-surface-variant sm:self-auto">
+                        <span class="whitespace-nowrap rounded-lg bg-surface-container-low px-3 py-1.5 text-xs font-bold text-on-surface-variant sm:text-sm">
                             {{ trans_choice(':count artículo seleccionado|:count artículos seleccionados', $pickup->itemCount) }}
                         </span>
                     </div>
 
                     {{-- Free delivery banner --}}
-                    <div class="relative flex items-center justify-between gap-4 overflow-hidden rounded-xl bg-primary p-4 text-white shadow-md">
-                        <div class="flex items-center gap-4">
-                            <span class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent/20 text-accent" aria-hidden="true">@svg('heroicon-o-gift', 'size-7')</span>
+                    <div class="relative flex items-center justify-between gap-4 overflow-hidden rounded-xl bg-success-container p-3 text-on-success-fixed-variant sm:bg-primary sm:p-4 sm:text-white sm:shadow-md">
+                        <div class="flex items-center gap-3 sm:gap-4">
+                            <span class="flex size-9 shrink-0 items-center justify-center rounded-xl sm:size-12 sm:bg-accent/20 sm:text-accent" aria-hidden="true">@svg('heroicon-o-gift', 'size-7')</span>
                             <div>
                                 @if (! $settings->delivery_enabled || $delivery->missingForFreeDelivery === 0)
-                                    <p class="text-[15px] font-bold">{{ $settings->delivery_enabled ? __('¡Genial! Ya tienes envío o recogida GRATIS') : __('Recogida en tienda GRATIS') }}</p>
-                                    <p class="text-xs text-white/70">
+                                    <p class="text-[13px] font-bold sm:text-[15px]">{{ $settings->delivery_enabled ? __('¡Genial! Ya tienes envío o recogida GRATIS') : __('Recogida en tienda GRATIS') }}</p>
+                                    <p class="text-xs sm:text-white/70">
                                         @if ($settings->delivery_enabled)
                                             {{ __('Superas los :threshold necesarios con un importe actual de :amount.', ['threshold' => Money::format($settings->free_delivery_threshold_cents), 'amount' => Money::format($pickup->subtotal)]) }}
                                         @else
@@ -100,8 +101,8 @@
                                         @endif
                                     </p>
                                 @else
-                                    <p class="text-[15px] font-bold">{{ __('Te faltan :amount para el envío gratis', ['amount' => Money::format($delivery->missingForFreeDelivery)]) }}</p>
-                                    <p class="text-xs text-white/70">{{ __('La recogida en tienda siempre es gratis.') }}</p>
+                                    <p class="text-[13px] font-bold sm:text-[15px]">{{ __('Te faltan :amount para el envío gratis', ['amount' => Money::format($delivery->missingForFreeDelivery)]) }}</p>
+                                    <p class="text-xs sm:text-white/70">{{ __('La recogida en tienda siempre es gratis.') }}</p>
                                 @endif
                             </div>
                         </div>

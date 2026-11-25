@@ -1,11 +1,15 @@
 <?php
 
+use App\Domain\Shared\Exceptions\DomainRuleException;
+use App\Http\Middleware\EnsureApiClient;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetStorefrontLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\Http\Middleware\CheckAbilities;
+use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,6 +22,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SecurityHeaders::class);
         $middleware->web(append: [SetStorefrontLocale::class]);
 
+        // REST API for outside systems (routes/api.php): key scopes and "is this an API client?".
+        $middleware->alias([
+            'abilities' => CheckAbilities::class,
+            'ability' => CheckForAnyAbility::class,
+            'api.client' => EnsureApiClient::class,
+        ]);
+
         // Hostinger and Cloudflare sit in front of the app; trust their forwarded headers.
         $middleware->trustProxies(at: '*');
     })
@@ -25,4 +36,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // Business rules broken through the API ("not enough stock"…) are the caller's mistake: 422.
+        $exceptions->render(fn (DomainRuleException $e, Request $request) => $request->is('api/*')
+            ? response()->json(['message' => $e->getMessage()], 422)
+            : null);
     })->create();

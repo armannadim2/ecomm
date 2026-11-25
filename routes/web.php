@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\OrderMailPreviewController;
 use App\Http\Controllers\Admin\PageEditorPreviewController;
 use App\Http\Controllers\Store\AccountController;
 use App\Http\Controllers\Store\AuthController;
@@ -81,3 +82,8 @@ Route::middleware('auth:web')->prefix('cuenta')->group(function () {
 Route::get('/admin/editor/vista-previa/{page}', PageEditorPreviewController::class)
     ->middleware([SetUpPanel::class.':admin', FilamentAuthenticate::class])
     ->name('admin.page-editor.preview');
+
+// Order e-mails as the customer sees them (staff only; ?locale=es|ca|en).
+Route::get('/admin/pedidos/{order}/correo/{mail}', OrderMailPreviewController::class)
+    ->middleware([SetUpPanel::class.':admin', FilamentAuthenticate::class])
+    ->name('admin.order-mail.preview');

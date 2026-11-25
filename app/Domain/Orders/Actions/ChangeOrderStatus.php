@@ -6,9 +6,11 @@ use App\Domain\Catalog\Actions\AdjustStock;
 use App\Domain\Orders\Enums\OrderStatus;
 use App\Domain\Orders\Enums\PaymentMethod;
 use App\Domain\Orders\Enums\PaymentStatus;
+use App\Domain\Orders\Mail\OrderReadyForPickup;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Shared\Exceptions\DomainRuleException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Moves an order to its next status. Cancelling puts the stock back.
@@ -48,6 +50,11 @@ class ChangeOrderStatus
             }
 
             $order->update($changes);
+
+            // Click & Collect: tell the customer the order is waiting at the counter (sent after commit).
+            if ($to === OrderStatus::ReadyForPickup && $order->email) {
+                Mail::to($order->email)->locale($order->locale)->queue(new OrderReadyForPickup($order));
+            }
 
             return $order;
         });

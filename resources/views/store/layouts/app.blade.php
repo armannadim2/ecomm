@@ -168,8 +168,9 @@
             </nav>
         </div>
 
-        {{-- Mobile search --}}
-        <form action="{{ route('store.search') }}" method="get" role="search" class="px-4 pb-3 lg:hidden">
+        {{-- Mobile search. Checkout pages set @section('compactHeader') (Stitch mobile cart): no search or menu on phones. --}}
+        @php $compactHeader = trim($__env->yieldContent('compactHeader')) !== ''; @endphp
+        <form action="{{ route('store.search') }}" method="get" role="search" @class(['px-4 pb-3 lg:hidden', 'hidden' => $compactHeader])>
             <label for="q-mobile" class="sr-only">{{ __('Buscar productos') }}</label>
             <div class="relative flex items-center">
                 @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3.5 size-5 text-outline')
@@ -179,7 +180,7 @@
         </form>
 
         {{-- Category navigation --}}
-        <div class="mx-auto max-w-[1280px] border-t border-outline-variant/60 px-4 lg:px-12">
+        <div @class(['mx-auto max-w-[1280px] border-t border-outline-variant/60 px-4 lg:px-12', 'hidden lg:block' => $compactHeader])>
             <nav aria-label="{{ __('Categorías') }}">
                 <ul class="no-scrollbar flex items-center gap-6 overflow-x-auto py-2.5 text-sm font-semibold">
                     <li>

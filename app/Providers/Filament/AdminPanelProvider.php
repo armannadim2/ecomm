@@ -54,6 +54,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Clientes'),
                 NavigationGroup::make('Contenido'),
                 NavigationGroup::make('Equipo'),
+                NavigationGroup::make('Integraciones')->collapsed(),
                 NavigationGroup::make('Sistema')->collapsed(),
             ])
             ->databaseNotifications()
