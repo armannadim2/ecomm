@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers\Store;
 
+use App\Domain\Content\Blocks\Block;
 use App\Domain\Customers\Actions\DeleteCustomerAccount;
 use App\Domain\Customers\Actions\ExportCustomerData;
 use App\Domain\Customers\Actions\SaveAddress;
 use App\Domain\Customers\Models\Address;
 use App\Domain\Customers\Models\Customer;
+use App\Domain\Orders\Enums\Fulfillment;
+use App\Domain\Orders\Enums\OrderStatus;
+use App\Domain\Orders\Models\Order;
+use App\Domain\Orders\Settings\CheckoutSettings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Store\AddressRequest;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +29,21 @@ class AccountController extends Controller
 {
     public function dashboard(Request $request): View
     {
-        return view('store.account.dashboard', ['customer' => $request->user()]);
+        /** @var Customer $customer */
+        $customer = $request->user();
+        $orders = $customer->orders()->with('items')->withCount('items')->limit(20)->get();
+
+        // The pickup order to show first: ready at the counter, else the newest one still open.
+        $active = $orders->first(fn (Order $o) => $o->fulfillment === Fulfillment::Pickup && $o->status === OrderStatus::ReadyForPickup)
+            ?? $orders->first(fn (Order $o) => $o->status->isOpen());
+
+        return view('store.account.dashboard', [
+            'customer' => $customer,
+            'activeOrder' => $active,
+            'orders' => $active ? $orders->reject(fn (Order $o) => $o->is($active))->values() : $orders,
+            'address' => $customer->addresses()->first(),
+            'openingHours' => (new Block('hours', ['h' => app(CheckoutSettings::class)->opening_hours]))->text('h'),
+        ]);
     }
 
     public function editProfile(Request $request): View

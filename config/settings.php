@@ -3,6 +3,7 @@
 use App\Domain\Content\Settings\StorefrontContentSettings;
 use App\Domain\Orders\Settings\CheckoutSettings;
 use App\Domain\Store\Settings\StoreSettings;
+use App\Domain\WhatsApp\Settings\WhatsAppSettings;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelSettings\SettingsCasts\DataCast;
 use Spatie\LaravelSettings\SettingsCasts\DateTimeInterfaceCast;
@@ -20,6 +21,7 @@ return [
         StoreSettings::class,
         StorefrontContentSettings::class,
         CheckoutSettings::class,
+        WhatsAppSettings::class,
     ],
 
     /*

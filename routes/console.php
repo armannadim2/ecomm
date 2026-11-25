@@ -2,12 +2,33 @@
 
 use App\Domain\Staff\Models\Staff;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
-use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+/*
+ * Scheduler. Hostinger shared hosting has no daemons: one cron entry runs it every minute
+ *   * * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1
+ * and the queue (e-mails, webhooks, image conversions) is worked from here.
+ */
+Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')
+    ->everyMinute()
+    ->withoutOverlapping(5)
+    ->runInBackground();
+
+// Products scheduled to go live (CAT-12).
+Schedule::command('catalog:publish-scheduled')->everyMinute()->withoutOverlapping();
+
+// Backups (OPS-04): database + storage/app, kept 7 days daily / 16 days / 8 weeks… (config/backup.php).
+// The monitor e-mails BACKUP_NOTIFY_EMAIL if the newest backup is older than a day.
+Schedule::command('backup:clean')->dailyAt('01:00');
+Schedule::command('backup:run')->dailyAt('01:30')->onOneServer();
+Schedule::command('backup:monitor')->dailyAt('03:00');
+
+Schedule::command('queue:prune-failed --hours=168')->daily();
+Schedule::command('sanctum:prune-expired --hours=24')->daily();
+Schedule::command('activitylog:clean')->weekly();
+// WhatsApp conversations: kept 2 years (privacy policy).
+Schedule::command('whatsapp:prune')->dailyAt('04:00');
 
 // Local development only: current 2FA code of a staff member, to log in to the admin
 // with the demo accounts. Refuses to run in production.

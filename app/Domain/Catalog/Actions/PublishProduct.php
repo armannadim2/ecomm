@@ -22,6 +22,7 @@ class PublishProduct
 
         $product->status = ProductStatus::Published;
         $product->published_at ??= now();
+        $product->scheduled_publish_at = null; // published now: any schedule is done
         $product->review_note = null;
 
         if ($reviewer !== null) {

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ApiClients;
 use App\Domain\Integrations\ApiScopes;
 use App\Domain\Integrations\Models\ApiClient;
 use App\Filament\Resources\ApiClients\Pages\ManageApiClients;
+use App\Filament\Support\ConfirmPassword;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -77,6 +78,7 @@ class ApiClientResource extends Resource
                 ->required()
                 ->columns(1)
                 ->helperText('Da solo los permisos que la integración necesita.'),
+            ConfirmPassword::field(),
         ];
     }
 
@@ -120,6 +122,7 @@ class ApiClientResource extends Resource
                     ->visible(fn (ApiClient $r) => $r->isActive())
                     ->requiresConfirmation()
                     ->modalDescription('La clave actual dejará de funcionar al momento. Tendrás que poner la nueva en la integración.')
+                    ->schema([ConfirmPassword::field()])
                     ->action(fn (ApiClient $record) => self::showKey($record->issueKey($record->scopes())->plainTextToken)),
                 Action::make('revoke')
                     ->label('Revocar')
@@ -128,6 +131,7 @@ class ApiClientResource extends Resource
                     ->visible(fn (ApiClient $r) => $r->isActive())
                     ->requiresConfirmation()
                     ->modalDescription('La integración dejará de tener acceso al momento. No se puede deshacer (podrás crear otra clave).')
+                    ->schema([ConfirmPassword::field()])
                     ->action(function (ApiClient $record) {
                         $record->revoke();
                         Notification::make()->success()->title('Clave revocada')->send();

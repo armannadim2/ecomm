@@ -7,6 +7,7 @@ use App\Domain\Integrations\Models\Webhook;
 use App\Domain\Integrations\SafeUrl;
 use App\Domain\Integrations\WebhookEvents;
 use App\Filament\Resources\Webhooks\Pages\ManageWebhooks;
+use App\Filament\Support\ConfirmPassword;
 use BackedEnum;
 use Closure;
 use Filament\Actions\Action;
@@ -61,6 +62,7 @@ class WebhookResource extends Resource
             CheckboxList::make('events')->label('Avisar cuando…')->options(WebhookEvents::labels())->required()->columns(2),
             Toggle::make('is_active')->label('Activo')->default(true)
                 ->helperText('Se desactiva solo tras '.Webhook::MAX_FAILURES.' fallos seguidos.'),
+            ConfirmPassword::field(),
         ]);
     }
 
@@ -101,9 +103,10 @@ class WebhookResource extends Resource
                     ->color('gray')
                     ->requiresConfirmation()
                     ->modalDescription('El secreto sirve al sistema receptor para comprobar la firma X-TotMes-Signature de cada aviso.')
+                    ->schema([ConfirmPassword::field()])
                     ->action(fn (Webhook $record) => self::showSecret($record)),
                 EditAction::make()->label('Editar'),
-                DeleteAction::make()->label('Borrar'),
+                DeleteAction::make()->label('Borrar')->schema([ConfirmPassword::field()]),
             ]);
     }
 

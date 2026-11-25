@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Domain\Catalog\Listeners\StripImageMetadata;
 use App\Domain\Catalog\Models\Category;
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Catalog\Models\ProductVariant;
@@ -13,6 +14,8 @@ use App\Domain\Orders\Models\Order;
 use App\Domain\Staff\Models\Staff;
 use App\Domain\Staff\Policies\ActivityPolicy;
 use App\Domain\Staff\Policies\RolePolicy;
+use App\Domain\WhatsApp\Agent\AgentModel;
+use App\Domain\WhatsApp\Agent\ClaudeAgentModel;
 use App\Http\View\StoreLayoutComposer;
 use Filament\Support\Facades\FilamentTimezone;
 use Illuminate\Auth\Events\Login;
@@ -29,6 +32,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAddedEvent;
 use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
@@ -37,6 +41,12 @@ class AppServiceProvider extends ServiceProvider
     {
         // One cart per request, so its lines are loaded once even when many views ask for it.
         $this->app->scoped(Cart::class);
+
+        // Same for the shared storefront data: built once per request, reused by every store.* view.
+        $this->app->scoped(StoreLayoutComposer::class);
+
+        // WhatsApp assistant: Claude via the Anthropic SDK (tests bind a scripted fake).
+        $this->app->bind(AgentModel::class, ClaudeAgentModel::class);
     }
 
     public function boot(): void
@@ -46,6 +56,9 @@ class AppServiceProvider extends ServiceProvider
         $this->configureAuditing();
         $this->configureStorefront();
         $this->configureApi();
+
+        // Uploaded photos lose their EXIF data (GPS, phone model) before thumbnails are made.
+        Event::listen(MediaHasBeenAddedEvent::class, StripImageMetadata::class);
 
         // Dates are stored in UTC and shown to staff in Spanish time.
         FilamentTimezone::set('Europe/Madrid');
@@ -73,6 +86,10 @@ class AppServiceProvider extends ServiceProvider
             Cache::forget('store.page-slugs');
             Cache::forget('sitemap.xml');
             Cache::forget('store.campaign');
+            // Department covers on the home page (BlockRenderer), one key per category.
+            foreach (Category::query()->pluck('id') as $id) {
+                Cache::forget("store.category-cover.{$id}");
+            }
         };
 
         foreach ([Category::class, Page::class, Product::class, Campaign::class] as $model) {

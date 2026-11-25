@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Roles;
 use App\Domain\Staff\Models\Staff;
 use App\Domain\Staff\Permissions;
 use App\Filament\Resources\Roles\Pages\ManageRoles;
+use App\Filament\Support\ConfirmPassword;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -66,6 +67,7 @@ class RoleResource extends Resource
                     ->bulkToggleable()
                     ->searchable()
                     ->columns(2),
+                ConfirmPassword::field(),
             ])
             ->columns(1);
     }
@@ -82,7 +84,7 @@ class RoleResource extends Resource
             ])
             ->recordActions([
                 EditAction::make()->after(fn (Role $record) => self::afterPermissionsChanged($record)),
-                DeleteAction::make(),
+                DeleteAction::make()->schema([ConfirmPassword::field()]),
             ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Staff;
 
 use App\Domain\Staff\Models\Staff;
 use App\Filament\Resources\Staff\Pages\ManageStaff;
+use App\Filament\Support\ConfirmPassword;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -88,6 +89,8 @@ class StaffResource extends Resource
                     ->label('Puede acceder al panel')
                     ->helperText('Desactívalo para bloquear el acceso al momento sin borrar la cuenta.')
                     ->default(true),
+                // Adding staff or changing access is sensitive: confirm who is at the keyboard.
+                ConfirmPassword::field(),
             ])
             ->columns(1);
     }
@@ -122,6 +125,7 @@ class StaffResource extends Resource
                         && ! $record->is(auth()->user()))
                     ->requiresConfirmation()
                     ->modalDescription('Úsalo si esta persona ha perdido el móvil. Tendrá que configurar de nuevo la verificación en dos pasos al entrar.')
+                    ->schema([ConfirmPassword::field()])
                     ->action(function (Staff $record): void {
                         $record->saveAppAuthenticationSecret(null);
                         $record->saveAppAuthenticationRecoveryCodes(null);
@@ -130,8 +134,8 @@ class StaffResource extends Resource
 
                         Notification::make()->success()->title('Verificación en dos pasos restablecida')->send();
                     }),
-                DeleteAction::make(),
-                RestoreAction::make(),
+                DeleteAction::make()->schema([ConfirmPassword::field()]),
+                RestoreAction::make()->schema([ConfirmPassword::field()]),
             ]);
     }
 

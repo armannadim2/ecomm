@@ -35,9 +35,22 @@ class StoreLayoutComposer
         private readonly StorefrontContentSettings $content,
     ) {}
 
+    /** @var array<string, mixed>|null Built once per request (the composer is a scoped singleton). */
+    private ?array $data = null;
+
+    /**
+     * Runs for every `store.*` view, including each product card and page section, so the
+     * data is built once and reused: before this, the home page made ~300 database queries.
+     */
     public function compose(View $view): void
     {
-        $view->with([
+        $view->with($this->data ??= $this->build());
+    }
+
+    /** @return array<string, mixed> */
+    private function build(): array
+    {
+        return [
             'store' => $this->settings,
             'logoUrl' => $this->settings->logo_path ? Storage::disk('public')->url($this->settings->logo_path) : null,
             'menuCategories' => Cache::remember('store.menu', now()->addMinutes(10), fn () => Category::query()
@@ -71,7 +84,7 @@ class StoreLayoutComposer
                 ->published()
                 ->pluck('slug')
                 ->all()),
-        ]);
+        ];
     }
 
     /** The live campaign id is re-checked every minute so campaigns start and end on time. */

@@ -6,6 +6,7 @@ use App\Domain\Catalog\Actions\AdjustStock;
 use App\Domain\Catalog\Actions\DuplicateProduct;
 use App\Domain\Catalog\Actions\PublishProduct;
 use App\Domain\Catalog\Actions\RejectProduct;
+use App\Domain\Catalog\Actions\SchedulePublication;
 use App\Domain\Catalog\Actions\SubmitProductForReview;
 use App\Domain\Catalog\Actions\UnpublishProduct;
 use App\Domain\Catalog\Enums\ProductStatus;
@@ -13,10 +14,12 @@ use App\Domain\Catalog\Models\Product;
 use App\Domain\Catalog\Models\ProductVariant;
 use App\Filament\Support\DomainAction;
 use Filament\Actions\Action;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Carbon;
 
 /**
  * Product actions shared by the product list and the edit page.
@@ -96,6 +99,47 @@ final class ProductActions
             ->action(fn (Product $record) => DomainAction::run(
                 fn () => app(UnpublishProduct::class)->handle($record),
                 success: 'Producto ocultado',
+            ));
+    }
+
+    /** CAT-12: publish automatically at a chosen moment (Spanish time). */
+    public static function schedule(): Action
+    {
+        return Action::make('schedulePublication')
+            ->label(fn (Product $record) => $record->scheduled_publish_at ? 'Cambiar programación' : 'Programar publicación')
+            ->icon(Heroicon::OutlinedClock)
+            ->color('gray')
+            ->authorize('publish')
+            ->visible(fn (Product $record) => ! $record->isPublished() && ! $record->trashed())
+            ->modalHeading('Programar publicación')
+            ->modalDescription('El producto se publicará solo en la fecha y hora elegidas (hora de España). Comprobamos ahora que esté listo para vender.')
+            ->fillForm(fn (Product $record) => ['at' => $record->scheduled_publish_at])
+            ->schema([
+                DateTimePicker::make('at')
+                    ->label('Publicar el')
+                    ->seconds(false)
+                    ->minDate(now())
+                    ->required(),
+            ])
+            ->action(fn (Product $record, array $data) => DomainAction::run(
+                fn () => app(SchedulePublication::class)->handle($record, Carbon::parse($data['at'])),
+                success: 'Publicación programada',
+                failureTitle: 'No se puede programar todavía',
+            ));
+    }
+
+    public static function cancelSchedule(): Action
+    {
+        return Action::make('cancelSchedule')
+            ->label('Cancelar programación')
+            ->icon(Heroicon::OutlinedXMark)
+            ->color('gray')
+            ->authorize('publish')
+            ->visible(fn (Product $record) => $record->scheduled_publish_at !== null && ! $record->isPublished())
+            ->requiresConfirmation()
+            ->action(fn (Product $record) => DomainAction::run(
+                fn () => app(SchedulePublication::class)->handle($record, null),
+                success: 'Programación cancelada',
             ));
     }
 

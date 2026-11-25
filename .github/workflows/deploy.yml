@@ -1,0 +1,56 @@
+# Deploy to Hostinger (zero downtime, see deploy/deploy.sh and deploy/activate.sh).
+# Run it from GitHub → Actions → "Deploy" → Run workflow (choose branch and target).
+# Repository settings → Environments "staging" / "production" hold the secrets:
+#   DEPLOY_HOST, DEPLOY_PORT, DEPLOY_USER, DEPLOY_PATH, DEPLOY_SSH_KEY (private key of the deploy key)
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Where to deploy
+        type: choice
+        options: [staging, production]
+        default: staging
+
+concurrency:
+  group: deploy-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # Tests must pass before anything is deployed.
+      - run: composer install --no-interaction --no-progress
+      - run: npm ci
+      - run: npm run build
+      - run: cp .env.example .env && php artisan key:generate
+      - run: ./vendor/bin/pest
+
+      - name: Deploy
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          SKIP_BUILD: '1'
+        run: |
+          rm .env
+          install -m 600 /dev/null ~/deploy_key
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/deploy_key
+          DEPLOY_KEY=~/deploy_key bash deploy/deploy.sh
+          rm -f ~/deploy_key

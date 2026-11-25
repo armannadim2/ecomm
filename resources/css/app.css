@@ -166,4 +166,22 @@
     & strong {
         @apply font-semibold text-on-surface;
     }
+
+    & h3 {
+        @apply pt-1 text-title-lg;
+    }
+
+    /* Tables (e.g. the cookie list): scroll sideways on phones instead of squeezing. */
+    & table {
+        @apply block w-full overflow-x-auto border-collapse text-body-sm;
+    }
+
+    & th,
+    & td {
+        @apply min-w-32 border border-outline-variant px-3 py-2 text-left align-top;
+    }
+
+    & th {
+        @apply bg-surface-container-low font-semibold text-on-surface;
+    }
 }

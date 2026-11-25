@@ -20,6 +20,8 @@ class EditProduct extends EditRecord
             ProductActions::reject()->after(fn () => $this->refreshFormData(['status'])),
             ProductActions::submitForReview()->after(fn () => $this->refreshFormData(['status'])),
             ProductActions::unpublish()->after(fn () => $this->refreshFormData(['status'])),
+            ProductActions::schedule()->after(fn () => $this->refreshFormData(['scheduled_publish_at'])),
+            ProductActions::cancelSchedule()->after(fn () => $this->refreshFormData(['scheduled_publish_at'])),
             ProductActions::adjustStock(),
             ActionGroup::make([
                 ProductActions::duplicate(),

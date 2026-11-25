@@ -34,6 +34,7 @@ class ProductResource extends JsonResource
             'seo_title' => $this->seo_title,
             'seo_description' => $this->seo_description,
             'published_at' => $this->published_at?->toIso8601String(),
+            'scheduled_publish_at' => $this->scheduled_publish_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

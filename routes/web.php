@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [CatalogController::class, 'home'])->name('store.home');
+Route::get('/categorias', [CatalogController::class, 'categories'])->name('store.categories');
 Route::get('/categoria/{slug}', [CatalogController::class, 'category'])->name('store.category');
 Route::get('/producto/{slug}', [CatalogController::class, 'product'])->name('store.product');
 Route::get('/buscar', [CatalogController::class, 'search'])->name('store.search')->middleware('throttle:60,1');

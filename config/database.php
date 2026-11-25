@@ -59,6 +59,8 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // Folder of mysqldump for backups when it is not on the PATH (e.g. Laragon on Windows).
+            'dump' => ['dump_binary_path' => env('DB_DUMP_BINARY_PATH')],
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],

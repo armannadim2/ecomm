@@ -30,7 +30,7 @@ it('creates an API key with scopes and shows it only once', function () {
     actingAs(staffWithRole(Staff::OWNER_ROLE), Staff::GUARD);
 
     Livewire::test(ManageApiClients::class)
-        ->callAction('create', ['name' => 'TPV tienda', 'scopes' => [ApiScopes::PRODUCTS_READ, ApiScopes::STOCK_WRITE]])
+        ->callAction('create', ['name' => 'TPV tienda', 'scopes' => [ApiScopes::PRODUCTS_READ, ApiScopes::STOCK_WRITE], 'current_password' => 'password'])
         ->assertHasNoActionErrors()
         ->assertNotified('Copia la clave ahora: no se volverá a mostrar');
 
@@ -44,7 +44,7 @@ it('revokes a key', function () {
     $client = ApiClient::query()->create(['name' => 'ERP']);
     $client->issueKey([ApiScopes::PRODUCTS_READ]);
 
-    Livewire::test(ManageApiClients::class)->callTableAction('revoke', $client);
+    Livewire::test(ManageApiClients::class)->callTableAction('revoke', $client, ['current_password' => 'password']);
 
     expect($client->fresh()->isActive())->toBeFalse()->and($client->tokens()->count())->toBe(0);
 });
@@ -53,12 +53,33 @@ it('creates a webhook with a generated secret and refuses non-web addresses', fu
     actingAs(staffWithRole(Staff::OWNER_ROLE), Staff::GUARD);
 
     Livewire::test(ManageWebhooks::class)
-        ->callAction('create', ['name' => 'TPV', 'url' => 'ftp://tpv.example.test', 'events' => [WebhookEvents::ORDER_CREATED], 'is_active' => true])
+        ->callAction('create', ['name' => 'TPV', 'url' => 'ftp://tpv.example.test', 'events' => [WebhookEvents::ORDER_CREATED], 'is_active' => true, 'current_password' => 'password'])
         ->assertHasActionErrors(['url']);
 
     Livewire::test(ManageWebhooks::class)
         ->callAction('create', ['name' => 'TPV', 'url' => 'https://tpv.example.test/hook', 'events' => [WebhookEvents::ORDER_CREATED], 'is_active' => true])
-        ->assertHasNoActionErrors();
+        ->assertHasNoActionErrors(); // password confirmed a moment ago: not asked again
 
     expect(Webhook::query()->sole()->secret)->toStartWith('whsec_');
+});
+
+it('asks for the password before sensitive actions and remembers it for 10 minutes', function () {
+    actingAs(staffWithRole(Staff::OWNER_ROLE), Staff::GUARD);
+    $client = ApiClient::query()->create(['name' => 'ERP']);
+    $client->issueKey([ApiScopes::PRODUCTS_READ]);
+
+    Livewire::test(ManageApiClients::class)
+        ->callTableAction('revoke', $client, ['current_password' => 'no-es-esta'])
+        ->assertHasTableActionErrors(['current_password']);
+    expect($client->fresh()->isActive())->toBeTrue();
+
+    Livewire::test(ManageApiClients::class)
+        ->callTableAction('revoke', $client, ['current_password' => 'password'])
+        ->assertHasNoTableActionErrors();
+    expect($client->fresh()->isActive())->toBeFalse();
+
+    $this->travel(11)->minutes();
+    Livewire::test(ManageApiClients::class)
+        ->callAction('create', ['name' => 'Otra', 'scopes' => [ApiScopes::PRODUCTS_READ]])
+        ->assertHasActionErrors(['current_password']);
 });

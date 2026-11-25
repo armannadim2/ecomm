@@ -57,7 +57,6 @@
     @if ($pageEditing)
         <meta name="robots" content="noindex, nofollow">
     @endif
-    @livewireStyles
 </head>
 {{-- Campaign effect (snow, confetti…) runs on the home page only, never in the visual editor preview. --}}
 <body @class(['flex min-h-screen flex-col bg-surface', 'pb-editing' => $pageEditing])
@@ -197,6 +196,9 @@
                     <li>
                         <a href="{{ route('store.home') }}" @class([$navLink, request()->routeIs('store.home') ? $navActive : $navIdle]) @if (request()->routeIs('store.home')) aria-current="page" @endif>{{ __('Inicio') }}</a>
                     </li>
+                    <li>
+                        <a href="{{ route('store.categories') }}" @class([$navLink, request()->routeIs('store.categories') ? $navActive : $navIdle]) @if (request()->routeIs('store.categories')) aria-current="page" @endif>{{ __('Todas las categorías') }}</a>
+                    </li>
                     @foreach ($menuCategories as $menuCategory)
                         @php $active = request()->routeIs('store.category') && request()->route('slug') === $menuCategory['slug']; @endphp
                         <li>
@@ -315,6 +317,6 @@
         </div>
     </footer>
 
-    @livewireScripts
+    @include('store.partials.whatsapp-button')
 </body>
 </html>

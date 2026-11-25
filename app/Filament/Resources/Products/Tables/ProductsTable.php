@@ -67,6 +67,9 @@ class ProductsTable
                 TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
+                    ->description(fn (Product $record) => $record->scheduled_publish_at && ! $record->isPublished()
+                        ? 'Se publica el '.$record->scheduled_publish_at->timezone('Europe/Madrid')->format('d/m H:i')
+                        : null)
                     ->sortable(),
                 TextColumn::make('updated_at')
                     ->label('Última modificación')
@@ -92,6 +95,8 @@ class ProductsTable
                     ProductActions::reject(),
                     ProductActions::submitForReview(),
                     ProductActions::unpublish(),
+                    ProductActions::schedule(),
+                    ProductActions::cancelSchedule(),
                     ProductActions::adjustStock(),
                     ProductActions::duplicate(),
                     DeleteAction::make()->label('Enviar a la papelera'),

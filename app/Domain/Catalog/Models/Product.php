@@ -65,6 +65,7 @@ class Product extends Model implements HasMedia
             'status' => ProductStatus::class,
             'tax_class' => TaxClass::class,
             'published_at' => 'datetime',
+            'scheduled_publish_at' => 'datetime',
             'submitted_at' => 'datetime',
         ];
     }
@@ -176,7 +177,7 @@ class Product extends Model implements HasMedia
     {
         return LogOptions::defaults()
             ->useLogName('catalog')
-            ->logOnly(['brand_id', 'name', 'slug', 'status', 'tax_class', 'published_at'])
+            ->logOnly(['brand_id', 'name', 'slug', 'status', 'tax_class', 'published_at', 'scheduled_publish_at'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }

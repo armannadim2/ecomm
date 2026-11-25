@@ -2,7 +2,9 @@
 
 namespace App\Domain\Content\Models;
 
+use App\Domain\Content\Blocks\Block;
 use App\Domain\Content\Policies\PagePolicy;
+use App\Domain\Orders\Settings\CheckoutSettings;
 use App\Domain\Store\Settings\StoreSettings;
 use App\Support\HasUniqueSlug;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -83,6 +85,11 @@ class Page extends Model
             $value = $property === 'fullAddress' ? $settings->fullAddress() : $settings->{$property};
             $replacements[$token] = e($value ?: '—');
         }
+
+        // Shop web address and opening hours (the latter from Envíos y pagos, in the visitor's language).
+        $replacements['[web]'] = e(parse_url((string) config('app.url'), PHP_URL_HOST) ?: (string) config('app.url'));
+        $hours = new Block('hours', ['h' => app(CheckoutSettings::class)->opening_hours]);
+        $replacements['[horario]'] = e($hours->text('h') ?: '—');
 
         return strtr(Str::sanitizeHtml((string) $this->body), $replacements);
     }

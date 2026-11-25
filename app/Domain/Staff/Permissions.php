@@ -66,6 +66,14 @@ final class Permissions
                     'integrations.manage' => 'Gestionar claves API y webhooks (TPV, ERP, otras webs)',
                 ],
             ],
+            'whatsapp' => [
+                'label' => 'WhatsApp',
+                'permissions' => [
+                    'whatsapp.view' => 'Ver las conversaciones de WhatsApp',
+                    'whatsapp.reply' => 'Responder por WhatsApp y atender en lugar del asistente',
+                    'whatsapp.manage' => 'Configurar WhatsApp y el asistente (claves de Meta y Anthropic)',
+                ],
+            ],
             'pages' => [
                 'label' => 'Páginas',
                 'permissions' => [
@@ -150,6 +158,7 @@ final class Permissions
                 ...$campaignsEdit, 'campaigns.delete', 'campaigns.restore',
                 'customers.view', 'staff.view', 'activity.view', 'settings.manage',
                 'orders.view', 'orders.update',
+                'whatsapp.view', 'whatsapp.reply',
             ],
             'Contenido' => [
                 'products.view', 'products.create', 'products.update', 'products.publish',
@@ -161,8 +170,8 @@ final class Permissions
             // Uploads products into the store; an owner/manager reviews them before they go live.
             'Colaborador' => ['products.submit', 'categories.view', 'brands.view'],
             'Almacén' => ['products.view', 'products.stock', 'categories.view', 'brands.view'],
-            'Pedidos' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view', 'orders.update'],
-            'Atención al cliente' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view'],
+            'Pedidos' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view', 'orders.update', 'whatsapp.view', 'whatsapp.reply'],
+            'Atención al cliente' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view', 'whatsapp.view', 'whatsapp.reply'],
         ];
     }
 }

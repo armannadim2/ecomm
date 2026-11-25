@@ -38,6 +38,15 @@ return [
             'report' => false,
         ],
 
+        // Backups (spatie/laravel-backup): private, never served.
+        'backups' => [
+            'driver' => 'local',
+            'root' => storage_path('app/backups'),
+            'serve' => false,
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

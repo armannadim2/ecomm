@@ -6,6 +6,7 @@ use App\Domain\Catalog\Models\Category;
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Catalog\Queries\StorefrontProducts;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Turns stored page-builder blocks into Block objects with the data each one needs
@@ -90,11 +91,16 @@ final class BlockRenderer
 
         if ($withCovers) {
             // Categories have no image: use the photo of the newest product in the department.
+            // One query per category, so the urls are cached for 10 minutes (plain strings only).
             foreach ($categories as $category) {
-                $category->setAttribute('cover_url', StorefrontProducts::sort(StorefrontProducts::inCategory($category), 'novedades')
-                    ->whereHas('media')
-                    ->first()
-                    ?->imageUrl('medium'));
+                $category->setAttribute('cover_url', Cache::remember(
+                    "store.category-cover.{$category->id}",
+                    now()->addMinutes(10),
+                    fn () => StorefrontProducts::sort(StorefrontProducts::inCategory($category), 'novedades')
+                        ->whereHas('media')
+                        ->first()
+                        ?->imageUrl('medium') ?? '',
+                ) ?: null);
             }
         }
 

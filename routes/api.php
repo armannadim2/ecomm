@@ -10,8 +10,16 @@ use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\ProductImageController;
 use App\Http\Controllers\Api\V1\StockController;
 use App\Http\Controllers\Api\V1\VariantController;
+use App\Http\Controllers\Webhooks\WhatsAppWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+/*
+ * Meta WhatsApp Cloud API webhook (customer service + AI assistant). URL to paste in Meta:
+ * https://<shop>/api/webhooks/whatsapp — signed requests only (see WhatsAppWebhookController).
+ */
+Route::get('webhooks/whatsapp', [WhatsAppWebhookController::class, 'verify'])->middleware('throttle:60,1')->name('webhooks.whatsapp.verify');
+Route::post('webhooks/whatsapp', [WhatsAppWebhookController::class, 'receive'])->middleware('throttle:600,1')->name('webhooks.whatsapp');
 
 /*
  * REST API v1 for outside systems (POS, ERP, marketplaces). Reference: docs/API.md.
