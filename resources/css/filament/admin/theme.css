@@ -1,10 +1,10 @@
 /*
- * Admin panel theme. Follows the Stitch "Afegir Producte - Tot & Més" design
- * (D:\Projects\eComm\design\totmes-afegir-producte.html): Plus Jakarta Sans, warm orange actions (#bf4317),
- * soft rounded cards. Colours come from AdminPanelProvider::colors() so light and dark mode both work.
+ * Admin panel theme. Tot & Més brand guide: Bricolage Grotesque, Coral actions, Navy text,
+ * soft rounded cards (layout from the Stitch "Afegir Producte" design).
+ * Colours come from AdminPanelProvider::colors() so light and dark mode both work.
  * The font is self-hosted through @fontsource (no Google / Bunny request).
  */
-@import '@fontsource-variable/plus-jakarta-sans/wght.css';
+@import '@fontsource-variable/bricolage-grotesque/opsz.css';
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
 @source '../../../../app/Filament/**/*';

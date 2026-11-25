@@ -35,11 +35,22 @@
     @php $metaDescription = trim($__env->yieldContent('description')); @endphp
     <meta name="description" content="{!! $metaDescription !== '' ? $metaDescription : e($store->tagline) !!}">
     <link rel="canonical" href="@yield('canonical', url()->current())">
-    <meta name="theme-color" content="#1b2942">
+    <meta name="theme-color" content="#1d3557">
+    {{-- Brand icons (logo kit). --}}
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon-180.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
     <meta property="og:site_name" content="{{ $store->store_name }}">
     <meta property="og:title" content="@yield('title', $store->store_name)">
     <meta property="og:url" content="@yield('canonical', url()->current())">
     <meta property="og:locale" content="{{ ['es' => 'es_ES', 'ca' => 'ca_ES', 'en' => 'en_GB'][$currentLocale] ?? 'es_ES' }}">
+    @unless (str_contains($__env->yieldPushContent('head'), 'og:image'))
+        {{-- Brand link preview (logo kit social/og-image); product pages push their own photo. --}}
+        <meta property="og:image" content="{{ asset('brand/og-image-1200x630.png') }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+    @endunless
     @stack('head')
     @php $pageEditing = \App\Domain\Content\Blocks\PageEditing::active(); @endphp
     @vite(array_filter(['resources/css/app.css', 'resources/js/app.js', $pageEditing ? 'resources/js/page-editor-preview.js' : null]))
@@ -56,7 +67,7 @@
         {{ __('Saltar al contenido') }}
     </a>
 
-    <header class="sticky top-0 z-50 bg-white/95 shadow-[0_1px_8px_rgba(27,41,66,0.08)] backdrop-blur-xl">
+    <header class="sticky top-0 z-50 bg-white/95 shadow-soft backdrop-blur-xl">
         {{-- Announcement bar (deep navy) --}}
         <div class="bg-primary px-4 py-2 text-white lg:px-12">
             <div class="mx-auto flex max-w-[1280px] items-center justify-between gap-3 text-xs sm:text-sm">
@@ -108,7 +119,7 @@
                     @if ($logoUrl)
                         <img src="{{ $logoUrl }}" alt="{{ $store->store_name }}" class="h-10 w-auto object-contain sm:h-12">
                     @else
-                        @include('store.partials.logo', ['name' => $store->store_name, 'tagline' => $head->text('tagline')])
+                        @include('store.partials.logo', ['name' => $store->store_name])
                     @endif
                 </a>
                 @if ($head->has('store_pill') && ($pillUrl = $linkUrl($head->url('store_pill_url') ?? '#contacto')))
@@ -236,7 +247,7 @@
 
         <div class="mx-auto grid max-w-[1280px] grid-cols-2 gap-8 px-4 py-12 md:grid-cols-5 lg:px-12">
             <div class="col-span-2">
-                <p class="mb-4">@include('store.partials.logo', ['name' => $store->store_name, 'tagline' => $head->text('tagline'), 'size' => 'sm'])</p>
+                <p class="mb-4">@include('store.partials.logo', ['name' => $store->store_name, 'size' => 'sm'])</p>
                 @if ($foot->has('about'))
                     <p class="mb-4 max-w-sm text-sm leading-relaxed text-on-surface-variant">{{ $foot->text('about') }}</p>
                 @endif

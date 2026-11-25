@@ -12,7 +12,7 @@
 }
 
 .pb-editing .pb-block.pb-selected {
-    outline: 3px solid #bf4317;
+    outline: 3px solid #c4431c;
 }
 
 .pb-editing .pb-block.pb-is-hidden > :not(.pb-toolbar):not(.pb-hidden-note) {
@@ -31,9 +31,9 @@
     transform: translateX(-50%);
     padding: 4px 6px;
     border-radius: 9999px;
-    background: #1b2942;
+    background: #1d3557;
     color: #fff;
-    font: 700 12px/1 'Plus Jakarta Sans Variable', system-ui, sans-serif;
+    font: 700 12px/1 'Bricolage Grotesque Variable', system-ui, sans-serif;
     box-shadow: 0 6px 20px rgb(27 41 66 / 0.3);
     white-space: nowrap;
 }
@@ -87,8 +87,8 @@
     padding: 4px 10px;
     border-radius: 9999px;
     background: #fff;
-    color: #1b2942;
-    font: 700 11px/1.2 'Plus Jakarta Sans Variable', system-ui, sans-serif;
+    color: #1d3557;
+    font: 700 11px/1.2 'Bricolage Grotesque Variable', system-ui, sans-serif;
     box-shadow: 0 2px 8px rgb(27 41 66 / 0.15);
 }
 
@@ -105,8 +105,8 @@
 [data-pb-edit].pb-typing {
     outline: none;
     background: rgb(255 255 255 / 0.85);
-    color: #1b2942;
-    box-shadow: 0 0 0 2px #bf4317;
+    color: #1d3557;
+    box-shadow: 0 0 0 2px #c4431c;
 }
 
 [data-pb-edit]:empty::before {
@@ -123,7 +123,7 @@
     height: 6px;
     margin: 6px 16px;
     border-radius: 9999px;
-    background: #e05a2b;
+    background: #e4572e;
 }
 
 .pb-drop-indicator span {
@@ -133,9 +133,9 @@
     transform: translate(-50%, -50%);
     padding: 4px 12px;
     border-radius: 9999px;
-    background: #e05a2b;
+    background: #e4572e;
     color: #fff;
-    font: 700 12px/1 'Plus Jakarta Sans Variable', system-ui, sans-serif;
+    font: 700 12px/1 'Bricolage Grotesque Variable', system-ui, sans-serif;
 }
 
 .pb-empty {
@@ -150,10 +150,10 @@
     border-radius: 24px;
     color: #4e5d78;
     text-align: center;
-    font: 14px/1.5 'Plus Jakarta Sans Variable', system-ui, sans-serif;
+    font: 14px/1.5 'Bricolage Grotesque Variable', system-ui, sans-serif;
 }
 
 .pb-empty strong {
-    color: #1b2942;
+    color: #1d3557;
     font-size: 18px;
 }

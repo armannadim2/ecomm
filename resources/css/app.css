@@ -1,54 +1,56 @@
 /*
- * Storefront styles. Design: Google Stitch "Tot & Més Barcelona" (references in D:\Projects\eComm\design).
- * Fonts are self-hosted through @fontsource (bundled by Vite): no request to Google Fonts (GDPR).
+ * Storefront styles. Brand: Tot & Més brand guide (Concept 2 · La Bossa, D:\Projects\eComm\TotIMes_logo_kit)
+ * on the Google Stitch layouts (D:\Projects\eComm\design).
+ * Typeface: Bricolage Grotesque, self-hosted through @fontsource (bundled by Vite): no request to Google Fonts (GDPR).
  */
-@import '@fontsource-variable/plus-jakarta-sans/wght.css';
+@import '@fontsource-variable/bricolage-grotesque/opsz.css';
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif,
+    /* Brand typeface: Bricolage Grotesque — ExtraBold for headings, Regular for text (optical sizes on). */
+    --font-sans: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    /* Headings use the same family in extra-bold (Tot & Més design has a single typeface). */
-    --font-display: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
 
-    /* Palette: Tot & Més (deep navy + warm terracotta orange on cream). */
-    --color-primary: #1b2942; /* navy: headings, text, announcement bar */
-    --color-primary-container: #2a3d5e;
+    /* Brand palette: Navy #1D3557, Coral #E4572E, Blush #FDF1EC, Coral light #F08A6B. */
+    --color-primary: #1d3557; /* Navy: headings, text, announcement bar */
+    --color-primary-container: #2b4a73;
     --color-on-primary: #ffffff;
 
-    --color-secondary: #bf4317; /* orange CTAs; design #e05a2b darkened for 4.5:1 with white text */
-    --color-secondary-hover: #a83812;
+    --color-secondary: #c4431c; /* Coral for buttons and links: brand #E4572E deepened to 5:1 with white text */
+    --color-secondary-hover: #a93716;
     --color-on-secondary: #ffffff;
-    --color-secondary-container: #ffe8de;
-    --color-accent: #e05a2b; /* brand orange for decoration only (logo, dots), never for text */
+    --color-secondary-container: #fce0d6;
+    --color-accent: #e4572e; /* Brand Coral for decoration, icons and large text only */
+    --color-accent-light: #f08a6b; /* Coral light: the "&" and accents on navy */
 
     --color-success: #047857;
     --color-success-container: #d1fae5;
     --color-on-success-fixed-variant: #065f46;
 
-    --color-tertiary: #1b2942;
-    --color-tertiary-fixed: #e8ecf3;
-    --color-on-tertiary-fixed: #1b2942;
+    --color-tertiary: #1d3557;
+    --color-tertiary-fixed: #e7ecf3;
+    --color-on-tertiary-fixed: #1d3557;
     --color-warning: #b45309;
 
     --color-error: #ba1a1a;
     --color-error-container: #ffdad6;
     --color-on-error-container: #93000a;
 
-    --color-surface: #faf2ed;
+    --color-surface: #fdf1ec; /* Blush */
     --color-surface-container-lowest: #ffffff;
-    --color-surface-container-low: #f7eee7;
-    --color-surface-container: #efe6df;
-    --color-surface-container-high: #e5dcd4;
-    --color-surface-container-highest: #dcd2c9;
-    --color-on-surface: #1b2942;
-    --color-on-surface-variant: #4e5d78;
-    --color-outline: #5f6b7e; /* design #8f9cae, darkened for 4.5:1 contrast on cream */
-    --color-outline-variant: #e5dcd4;
-    --color-inverse-surface: #1b2942;
+    --color-surface-container-low: #faeae3;
+    --color-surface-container: #f5e1d8;
+    --color-surface-container-high: #eed6cb;
+    --color-surface-container-highest: #e6cbbf;
+    --color-on-surface: #1d3557;
+    --color-on-surface-variant: #4a5b76;
+    --color-outline: #596579; /* 5.3:1 on Blush */
+    --color-outline-variant: #eed6cb;
+    --color-inverse-surface: #1d3557;
     --color-inverse-on-surface: #ffffff;
 
     /* Type scale. */
@@ -110,8 +112,8 @@
     --radius-2xl: 1rem;
     --radius-3xl: 1.5rem;
 
-    --shadow-soft: 0 1px 8px rgb(27 41 66 / 0.08);
-    --shadow-cta: 0 4px 16px rgb(224 90 43 / 0.35);
+    --shadow-soft: 0 1px 8px rgb(29 53 87 / 0.08);
+    --shadow-cta: 0 4px 16px rgb(228 87 46 / 0.35);
 }
 
 @layer base {

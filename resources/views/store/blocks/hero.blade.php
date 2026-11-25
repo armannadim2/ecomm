@@ -12,7 +12,7 @@
 @endphp
 <section class="mx-auto w-full max-w-[1280px] px-4 py-4 lg:px-12">
     <div class="relative overflow-hidden rounded-3xl border border-outline-variant/70 bg-surface-container-low shadow-sm">
-        <div class="pointer-events-none absolute -right-20 -top-20 size-96 rounded-full bg-[#ffe8de] opacity-80 blur-3xl" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute -right-20 -top-20 size-96 rounded-full bg-secondary-container opacity-80 blur-3xl" aria-hidden="true"></div>
         <div class="pointer-events-none absolute -bottom-16 -left-12 size-80 rounded-full bg-surface/50 blur-3xl" aria-hidden="true"></div>
 
         <div class="relative z-10 grid grid-cols-1 items-center gap-8 p-6 sm:p-10 lg:grid-cols-12 lg:p-14">

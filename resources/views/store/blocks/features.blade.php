@@ -21,7 +21,7 @@
                 <ul @class(['grid grid-cols-1 gap-4 lg:col-span-7', 'sm:grid-cols-3' => count($cards) >= 3, 'sm:grid-cols-2' => count($cards) === 2])>
                     @foreach ($cards as $card)
                         <li class="flex flex-col gap-2.5 rounded-2xl border border-outline-variant/60 bg-white p-5 shadow-sm">
-                            <span @class(['flex size-10 items-center justify-center rounded-xl', ['bg-secondary-container text-secondary', 'bg-[#ffe8de] text-secondary', 'bg-primary/10 text-primary'][$loop->index % 3]]) aria-hidden="true">@svg(\App\Domain\Content\Blocks\BlockTypes::icon($card->get('icon')), 'size-[22px]')</span>
+                            <span @class(['flex size-10 items-center justify-center rounded-xl', ['bg-secondary-container text-secondary', 'bg-accent/15 text-secondary', 'bg-primary/10 text-primary'][$loop->index % 3]]) aria-hidden="true">@svg(\App\Domain\Content\Blocks\BlockTypes::icon($card->get('icon')), 'size-[22px]')</span>
                             <h3 class="text-sm font-bold text-primary">{{ $card->editable('title') }}</h3>
                             <p class="text-xs text-outline">{{ $card->editable('text') }}</p>
                         </li>

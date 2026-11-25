@@ -41,11 +41,21 @@ class AdminPanelProvider extends PanelProvider
                 [AppAuthentication::make()->recoverable()->brandName(config('app.name'))],
                 isRequired: true,
             )
-            // Look & feel from the Stitch "Afegir Producte" design; the theme self-hosts the font.
+            // Tot & Més brand guide (logo kit in public/brand): official logo, Coral actions on Navy text,
+            // Bricolage Grotesque self-hosted by the theme (no Google / Bunny request).
+            ->brandLogo(asset('brand/totimes-horizontal-color.svg'))
+            ->darkModeBrandLogo(asset('brand/totimes-horizontal-reversed.svg'))
+            ->brandLogoHeight('2.25rem')
+            ->favicon(asset('favicon.svg'))
             ->viteTheme('resources/css/filament/admin/theme.css')
-            ->font('Plus Jakarta Sans Variable', provider: LocalFontProvider::class)
+            ->font('Bricolage Grotesque Variable', provider: LocalFontProvider::class)
             ->colors([
-                'primary' => Color::hex('#bf4317'),
+                // Brand Coral. Shade 600 is the deepened coral (5:1 with white) and 500 sits just below brand #E4572E,
+                // so Filament draws buttons as coral with white text (with 500 = #E4572E it would pick a pale coral with dark text).
+                'primary' => array_map(Color::convertToOklch(...), [
+                    50 => '#fdf1ec', 100 => '#fce0d6', 200 => '#f9c4b1', 300 => '#f5a68b', 400 => '#f08a6b',
+                    500 => '#d64d24', 600 => '#c4431c', 700 => '#a93716', 800 => '#862c14', 900 => '#6d2613', 950 => '#3b1108',
+                ]),
                 'gray' => Color::Slate,
             ])
             ->navigationGroups([

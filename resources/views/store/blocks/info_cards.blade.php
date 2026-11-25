@@ -16,7 +16,7 @@
         @foreach ($cards as $card)
             <article class="flex flex-col justify-between rounded-3xl border border-outline-variant/60 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
                 <div class="flex flex-col gap-3">
-                    <span @class(['flex size-12 items-center justify-center rounded-2xl', ['bg-secondary-container text-secondary', 'bg-primary/10 text-primary', 'bg-[#ffe8de] text-secondary'][$loop->index % 3]]) aria-hidden="true">@svg(\App\Domain\Content\Blocks\BlockTypes::icon($card->get('icon')), 'size-7')</span>
+                    <span @class(['flex size-12 items-center justify-center rounded-2xl', ['bg-secondary-container text-secondary', 'bg-primary/10 text-primary', 'bg-accent/15 text-secondary'][$loop->index % 3]]) aria-hidden="true">@svg(\App\Domain\Content\Blocks\BlockTypes::icon($card->get('icon')), 'size-7')</span>
                     <h3 class="text-lg font-bold text-primary">{{ $card->editable('title') }}</h3>
                     @if ($card->has('text'))<p class="text-sm text-on-surface-variant">{{ $card->editable('text') }}</p>@endif
                     @if ($card->has('highlight_title') || $card->has('highlight_text'))
