@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Store;
 
+use App\Domain\Orders\Actions\ChangePaymentMethod;
+use App\Domain\Orders\Enums\PaymentMethod;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Payments\Actions\CapturePayPalPayment;
 use App\Domain\Payments\Actions\FailPayment;
@@ -14,6 +16,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
@@ -38,6 +41,29 @@ class PaymentController extends Controller
         }
 
         return view('store.payment-redirect', ['redirect' => $redirect, 'order' => $order]);
+    }
+
+    /**
+     * Order page "Cambiar forma de pago": the customer came back without paying and picks another
+     * method. Online methods go straight on to the payment; paying in store confirms the order.
+     */
+    public function changeMethod(Request $request, Order $order, ChangePaymentMethod $change, StartPayment $startPayment): View|RedirectResponse
+    {
+        abort_unless(CheckoutController::canSee($request, $order), 404);
+
+        $data = $request->validate(['payment_method' => ['required', Rule::enum(PaymentMethod::class)]]);
+
+        try {
+            $order = $change->handle($order, PaymentMethod::from($data['payment_method']));
+        } catch (DomainRuleException $e) {
+            return redirect()->to(self::orderUrl($order))->with('payment_error', $e->getMessage());
+        }
+
+        if (! $order->payment_method->isOnline()) {
+            return redirect()->to(self::orderUrl($order));
+        }
+
+        return $this->start($request, $order, $startPayment);
     }
 
     /** Redsys sends the customer back here (GET or POST, depending on the terminal). */

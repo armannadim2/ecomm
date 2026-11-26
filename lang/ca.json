@@ -953,5 +953,15 @@
     "El tiempo para pagar ha terminado. Si ya has pagado, lo confirmaremos en unos minutos.": "El temps per pagar s'ha acabat. Si ja has pagat, ho confirmarem d'aquí a uns minuts.",
     "Pagar ahora · :amount": "Pagar ara · :amount",
     "Seguimiento:": "Seguiment:",
-    "Ver el envío": "Veure l'enviament"
+    "Ver el envío": "Veure l'enviament",
+    "Tu cesta": "La teva cistella",
+    "Cerrar": "Tancar",
+    "Cargando…": "Carregant…",
+    "IVA incluido. El envío se calcula al finalizar la compra.": "IVA inclòs. L'enviament es calcula en finalitzar la compra.",
+    "Finalizar compra": "Finalitzar la compra",
+    "Añadido": "Afegit",
+    "Añadido a la cesta": "Afegit a la cistella",
+    "¿Prefieres pagar de otra forma? Elige otra opción; tu pedido sigue reservado.": "Prefereixes pagar d'una altra manera? Tria una altra opció; la teva comanda continua reservada.",
+    "Elegida": "Triada",
+    "Confirmar y pagar en la tienda": "Confirmar i pagar a la botiga"
 }

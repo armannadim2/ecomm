@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Store;
 use App\Domain\Catalog\Models\ProductVariant;
 use App\Domain\Catalog\Queries\StorefrontProducts;
 use App\Domain\Orders\Cart\Cart;
+use App\Domain\Orders\Cart\CartLine;
 use App\Domain\Orders\Enums\Fulfillment;
 use App\Domain\Orders\Enums\PaymentMethod;
 use App\Domain\Orders\Settings\CheckoutSettings;
 use App\Domain\Payments\Settings\PaymentSettings;
 use App\Domain\Shared\Exceptions\DomainRuleException;
 use App\Http\Controllers\Controller;
+use App\Support\Money;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -56,7 +59,11 @@ class CartController extends Controller
         ]);
     }
 
-    public function add(Request $request, Cart $cart): RedirectResponse
+    /**
+     * Adds to the cart and stays on the page: JSON for the storefront script (header cart updated
+     * in place, mini cart opened), otherwise back to the page the customer was on.
+     */
+    public function add(Request $request, Cart $cart): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'variant' => ['required', 'string', 'max:30'],
@@ -65,17 +72,48 @@ class CartController extends Controller
 
         $variant = ProductVariant::query()->where('ulid', $data['variant'])->first();
 
-        if (! $variant) {
-            return back()->withErrors(['cart' => __('Este producto ya no está disponible.')]);
-        }
-
         try {
+            if (! $variant) {
+                throw new DomainRuleException(__('Este producto ya no está disponible.'));
+            }
             $cart->add($variant, (int) ($data['quantity'] ?? 1));
         } catch (DomainRuleException $e) {
-            return back()->withErrors(['cart' => $e->getMessage()]);
+            return $request->expectsJson()
+                ? response()->json(['message' => $e->getMessage()], 422)
+                : back()->withErrors(['cart' => $e->getMessage()]);
         }
 
-        return redirect()->route('cart.show')->with('status', __('«:product» se ha añadido a tu cesta.', ['product' => $variant->product->name]));
+        $message = __('«:product» se ha añadido a tu cesta.', ['product' => $variant->product->name]);
+
+        return $request->expectsJson()
+            ? response()->json(['message' => $message] + $this->summaryData($cart))
+            : back()->with('status', $message);
+    }
+
+    /** Mini cart (header popup): read in the browser, so it also works on cached pages. */
+    public function summary(Cart $cart): JsonResponse
+    {
+        return response()->json($this->summaryData($cart))->header('Cache-Control', 'no-store, private');
+    }
+
+    /** @return array<string, mixed> */
+    private function summaryData(Cart $cart): array
+    {
+        $count = $cart->count();
+
+        return [
+            'count' => $count,
+            'subtotal' => Money::format($cart->totals()->subtotal),
+            'label' => trans_choice('Ver carrito, :count artículo|Ver carrito, :count artículos', $count),
+            'lines' => $cart->lines()->map(fn (CartLine $line) => [
+                'name' => $line->product->name,
+                'variant' => $line->variant->name,
+                'quantity' => $line->quantity,
+                'total' => Money::format($line->total()),
+                'image' => $line->product->imageUrl('thumb'),
+                'url' => route('store.product', $line->product->slug),
+            ])->values()->all(),
+        ];
     }
 
     public function update(Request $request, Cart $cart, string $variant): RedirectResponse

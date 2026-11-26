@@ -186,7 +186,7 @@
                     </p>
 
                     @if (Route::has('cart.add'))
-                        <form method="post" action="{{ route('cart.add') }}" class="flex flex-col gap-3">
+                        <form method="post" action="{{ route('cart.add') }}" class="flex flex-col gap-3" x-data="addToCart" x-on:submit.prevent="submit">
                             @csrf
                             <input type="hidden" name="variant" :value="selected">
                             <div class="flex items-center gap-4 rounded-xl border border-outline-variant bg-surface p-3">
@@ -195,8 +195,9 @@
                                        class="w-20 rounded-lg border border-outline-variant bg-white px-3 py-1.5 text-center text-body-md font-bold">
                             </div>
                             <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-6 py-4 text-label-lg font-extrabold text-on-secondary shadow-cta transition-all hover:bg-secondary-hover hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-                                    :disabled="!current?.available">
-                                @svg('heroicon-o-shopping-bag', 'size-5') {{ __('Añadir a la cesta') }}
+                                    :disabled="busy || !current?.available">
+                                <span x-show="!added" class="flex items-center gap-2">@svg('heroicon-o-shopping-bag', 'size-5') {{ __('Añadir a la cesta') }}</span>
+                                <span x-cloak x-show="added" class="flex items-center gap-2">@svg('heroicon-o-check', 'size-5') {{ __('Añadido a la cesta') }}</span>
                             </button>
                         </form>
                     @endif

@@ -62,11 +62,12 @@
         <div class="mt-auto border-t border-outline-variant/40 pt-2">
             @if (Route::has('cart.add') && $available && $variants->count() === 1)
                 {{-- Single-option product: add straight to the cart (sits above the stretched card link). --}}
-                <form method="post" action="{{ route('cart.add') }}" class="relative z-10">
+                <form method="post" action="{{ route('cart.add') }}" class="relative z-10" x-data="addToCart" x-on:submit.prevent="submit">
                     @csrf
                     <input type="hidden" name="variant" value="{{ $variants->first()->ulid }}">
-                    <button type="submit" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-secondary py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-secondary-hover active:scale-[0.98]">
-                        @svg('heroicon-o-shopping-cart', 'size-4') {{ __('Añadir a la cesta') }}<span class="sr-only">: {{ $product->name }}</span>
+                    <button type="submit" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-secondary py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-secondary-hover active:scale-[0.98] disabled:opacity-70" :disabled="busy">
+                        <span x-show="!added" class="flex items-center gap-1.5">@svg('heroicon-o-shopping-cart', 'size-4') {{ __('Añadir a la cesta') }}</span>
+                        <span x-cloak x-show="added" class="flex items-center gap-1.5">@svg('heroicon-o-check', 'size-4') {{ __('Añadido') }}</span><span class="sr-only">: {{ $product->name }}</span>
                     </button>
                 </form>
             @else

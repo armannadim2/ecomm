@@ -163,14 +163,7 @@
                 @endauth
                 @if ($hasCart)
                     @php $cart = app(\App\Domain\Orders\Cart\Cart::class); $cartCount = $cart->count(); @endphp
-                    <a href="{{ route('cart.show') }}" class="relative inline-flex items-center gap-1.5 rounded-xl bg-secondary px-3 py-2.5 text-sm font-bold text-white shadow-cta transition-all hover:bg-secondary-hover hover:shadow-lg active:scale-[0.98] sm:px-4"
-                       aria-label="{{ trans_choice('Ver carrito, :count artículo|Ver carrito, :count artículos', $cartCount) }}">
-                        @svg('heroicon-o-shopping-cart', 'size-[18px]')
-                        <span class="hidden sm:inline">{{ __('Ver Carrito') }}@if ($cartCount > 0) ({{ \App\Support\Money::format($cart->totals()->subtotal) }})@endif</span>
-                        @if ($cartCount > 0)
-                            <span class="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white sm:hidden" aria-hidden="true">{{ $cartCount }}</span>
-                        @endif
-                    </a>
+                    @include('store.partials.mini-cart', ['cart' => $cart, 'cartCount' => $cartCount])
                 @else
                     <a href="{{ route('store.home') }}#novedades" class="hidden items-center gap-1.5 rounded-xl bg-secondary px-4 py-2.5 text-sm font-bold text-white shadow-cta transition-all hover:bg-secondary-hover hover:shadow-lg active:scale-[0.98] sm:inline-flex">
                         @svg('heroicon-o-shopping-bag', 'size-[18px]') <span>{{ __('Ver novedades') }}</span>

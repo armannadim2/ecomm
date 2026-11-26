@@ -953,5 +953,15 @@
     "El tiempo para pagar ha terminado. Si ya has pagado, lo confirmaremos en unos minutos.": "The time to pay has run out. If you have already paid, we will confirm it in a few minutes.",
     "Pagar ahora · :amount": "Pay now · :amount",
     "Seguimiento:": "Tracking:",
-    "Ver el envío": "Track parcel"
+    "Ver el envío": "Track parcel",
+    "Tu cesta": "Your basket",
+    "Cerrar": "Close",
+    "Cargando…": "Loading…",
+    "IVA incluido. El envío se calcula al finalizar la compra.": "VAT included. Shipping is calculated at checkout.",
+    "Finalizar compra": "Proceed to checkout",
+    "Añadido": "Added",
+    "Añadido a la cesta": "Added to basket",
+    "¿Prefieres pagar de otra forma? Elige otra opción; tu pedido sigue reservado.": "Would you rather pay another way? Choose another option; your order stays reserved.",
+    "Elegida": "Selected",
+    "Confirmar y pagar en la tienda": "Confirm and pay at the shop"
 }

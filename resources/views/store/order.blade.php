@@ -23,6 +23,11 @@
     $awaitingPayment = $order->isAwaitingOnlinePayment();
     $paymentOpen = $awaitingPayment && ! $order->payment_expires_at?->isPast();
     $checking = $awaitingPayment && session('payment_returned');
+    // Signed: the customer may be here through the signed link (no session after the bank).
+    $payUrl = $paymentOpen ? \Illuminate\Support\Facades\URL::temporarySignedRoute('payment.start', now()->addHours(2), $order) : null;
+    $payMethods = $paymentOpen
+        ? collect(\App\Domain\Orders\Enums\PaymentMethod::cases())->filter(fn ($m) => \App\Domain\Orders\Actions\ChangePaymentMethod::canUse($order, $m, $settings))->values()
+        : collect();
     $placed = $order->placed_at->timezone('Europe/Madrid')->locale(app()->getLocale());
 @endphp
 
@@ -86,7 +91,7 @@
             </div>
             <div class="flex shrink-0 flex-wrap items-center gap-2">
                 @if ($paymentOpen && ! $checking)
-                    <a href="{{ route('payment.start', $order) }}" class="flex items-center gap-2 rounded-xl bg-secondary px-5 py-3 text-sm font-extrabold text-white shadow-cta transition-colors hover:bg-secondary-hover print:hidden">
+                    <a href="{{ $payUrl }}" class="flex items-center gap-2 rounded-xl bg-secondary px-5 py-3 text-sm font-extrabold text-white shadow-cta transition-colors hover:bg-secondary-hover print:hidden">
                         @svg('heroicon-s-lock-closed', 'size-5') <span>{{ __('Pagar ahora · :amount', ['amount' => Money::format($order->total_cents)]) }}</span>
                     </a>
                 @endif
@@ -112,6 +117,54 @@
         <div class="mx-auto mt-6 max-w-[1320px] px-4 md:px-12" role="alert">
             <p class="flex items-center gap-2 rounded-xl bg-error-container px-4 py-3 text-sm font-semibold text-error">@svg('heroicon-o-exclamation-triangle', 'size-5 shrink-0') {{ session('payment_error') }}</p>
         </div>
+    @endif
+
+    {{-- Back without paying: pay again with the same method or pick another one. --}}
+    @if ($paymentOpen && ! $checking && $payMethods->count() > 1)
+        <section class="mx-auto mt-6 max-w-[1320px] px-4 md:px-12 print:hidden" aria-labelledby="cambiar-pago-titulo">
+            <form method="post" action="{{ \Illuminate\Support\Facades\URL::temporarySignedRoute('payment.method', now()->addHours(2), $order) }}"
+                  x-data="{ payment: @js($order->payment_method->value) }"
+                  class="flex flex-col gap-4 rounded-2xl border border-outline-variant bg-white p-5 shadow-sm md:p-6">
+                @csrf
+                <div>
+                    <h2 id="cambiar-pago-titulo" class="text-lg font-extrabold text-primary">{{ __('Forma de pago') }}</h2>
+                    <p class="text-sm text-on-surface-variant">{{ __('¿Prefieres pagar de otra forma? Elige otra opción; tu pedido sigue reservado.') }}</p>
+                </div>
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2" role="radiogroup" aria-label="{{ __('Método de pago') }}">
+                    @foreach ($payMethods as $method)
+                        @php
+                            [$title, $hint, $icon] = match ($method) {
+                                \App\Domain\Orders\Enums\PaymentMethod::Bizum => [__('Bizum'), __('Pago instantáneo desde la app de tu banco'), 'heroicon-o-qr-code'],
+                                \App\Domain\Orders\Enums\PaymentMethod::Card => [__('Tarjeta de crédito o débito'), 'Visa · Mastercard · Maestro', 'heroicon-o-credit-card'],
+                                \App\Domain\Orders\Enums\PaymentMethod::PayPal => [__('PayPal'), __('Paga con tu cuenta PayPal'), 'heroicon-o-wallet'],
+                                \App\Domain\Orders\Enums\PaymentMethod::PayInStore => [__('Pagar en la tienda al recoger'), __('Efectivo, tarjeta o Bizum en el mostrador de la tienda'), 'heroicon-o-building-storefront'],
+                            };
+                        @endphp
+                        <label class="flex cursor-pointer items-center justify-between gap-3 rounded-xl p-4 ring-2 transition-all"
+                               :class="payment === '{{ $method->value }}' ? 'bg-surface-container-low ring-secondary' : 'bg-white ring-outline-variant/40'">
+                            <span class="flex items-center gap-3">
+                                <input type="radio" name="payment_method" value="{{ $method->value }}" x-model="payment" @checked($order->payment_method === $method) class="size-4 accent-secondary">
+                                <span>
+                                    <span class="flex flex-wrap items-center gap-2 text-base font-bold text-primary">
+                                        {{ $title }}
+                                        @if ($order->payment_method === $method)
+                                            <span class="rounded-full bg-surface-container-high px-2 py-0.5 text-[11px] font-bold text-on-surface-variant">{{ __('Elegida') }}</span>
+                                        @endif
+                                    </span>
+                                    <span class="block text-xs text-on-surface-variant">{{ $hint }}</span>
+                                </span>
+                            </span>
+                            @svg($icon, 'size-6 shrink-0 text-secondary')
+                        </label>
+                    @endforeach
+                </div>
+                @error('payment_method') <p class="text-sm text-error">{{ $message }}</p> @enderror
+                <button type="submit" class="flex items-center justify-center gap-2 self-start rounded-xl bg-secondary px-5 py-3 text-sm font-extrabold text-white shadow-cta transition-colors hover:bg-secondary-hover">
+                    <span x-show="payment !== 'pay_in_store'" class="flex items-center gap-2">@svg('heroicon-s-lock-closed', 'size-5') {{ __('Pagar ahora · :amount', ['amount' => Money::format($order->total_cents)]) }}</span>
+                    <span x-cloak x-show="payment === 'pay_in_store'" class="flex items-center gap-2">@svg('heroicon-s-building-storefront', 'size-5') {{ __('Confirmar y pagar en la tienda') }}</span>
+                </button>
+            </form>
+        </section>
     @endif
 
     @if ($order->tracking_number)

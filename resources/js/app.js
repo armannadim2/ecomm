@@ -6,7 +6,11 @@
 import Alpine from 'alpinejs';
 import './campaign-effects';
 import cookieConsent from './cookie-consent';
+import { addToCart, cartStore, miniCart } from './cart';
 
 window.Alpine = Alpine;
+cartStore(Alpine);
 Alpine.data('cookieConsent', cookieConsent);
+Alpine.data('miniCart', miniCart);
+Alpine.data('addToCart', addToCart);
 Alpine.start();

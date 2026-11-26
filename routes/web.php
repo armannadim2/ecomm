@@ -37,6 +37,7 @@ Route::get('/idioma/{locale}', LocaleController::class)->name('locale.switch');
 
 // Cart and checkout
 Route::get('/cesta', [CartController::class, 'show'])->name('cart.show');
+Route::get('/cesta/resumen', [CartController::class, 'summary'])->name('cart.summary');
 Route::post('/cesta', [CartController::class, 'add'])->name('cart.add')->middleware('throttle:60,1');
 Route::patch('/cesta/{variant}', [CartController::class, 'update'])->name('cart.update');
 Route::delete('/cesta/{variant}', [CartController::class, 'remove'])->name('cart.remove');
@@ -46,6 +47,7 @@ Route::get('/pedido/{order}', [CheckoutController::class, 'show'])->name('order.
 
 // Online payment (Redsys cards + Bizum, PayPal). Return pages only redirect: they never mark an order paid.
 Route::get('/pedido/{order}/pagar', [PaymentController::class, 'start'])->name('payment.start')->middleware('throttle:20,1');
+Route::post('/pedido/{order}/pagar', [PaymentController::class, 'changeMethod'])->name('payment.method')->middleware('throttle:20,1');
 Route::match(['get', 'post'], '/pago/redsys/{payment}/{result}', [PaymentController::class, 'redsysReturn'])
     ->whereIn('result', ['ok', 'ko'])->name('payment.redsys.return');
 Route::get('/pago/paypal/{payment}/vuelta', [PaymentController::class, 'paypalReturn'])->name('payment.paypal.return')->middleware('throttle:30,1');

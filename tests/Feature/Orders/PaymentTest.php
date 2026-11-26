@@ -5,6 +5,7 @@ use App\Domain\Invoices\Models\Invoice;
 use App\Domain\Marketing\Settings\AnalyticsSettings;
 use App\Domain\Orders\Actions\ChangeOrderStatus;
 use App\Domain\Orders\Enums\OrderStatus;
+use App\Domain\Orders\Enums\PaymentMethod;
 use App\Domain\Orders\Enums\PaymentStatus;
 use App\Domain\Orders\Mail\OrderPlaced;
 use App\Domain\Orders\Mail\OrderRefunded;
@@ -424,4 +425,58 @@ it('shows the payment, delivery and cookie settings pages to managers and keeps 
 
     actingAs(staffWithRole('Almacén'), Staff::GUARD);
     expect(ManagePaymentSettings::canAccess())->toBeFalse();
+});
+
+it('lets the customer switch to another online method after coming back without paying', function () {
+    $order = onlineOrder();
+    get(route('payment.start', $order))->assertOk();
+
+    get(route('order.show', $order))->assertOk()
+        ->assertSee('Forma de pago')
+        ->assertSee('value="bizum"', false)
+        ->assertDontSee('value="pay_in_store"', false); // home delivery is always paid online
+
+    post(URL::temporarySignedRoute('payment.method', now()->addHour(), $order), ['payment_method' => 'bizum'])
+        ->assertOk()
+        ->assertSee('Ds_MerchantParameters', false);
+
+    $latest = Payment::query()->latest('id')->first();
+    expect($order->fresh()->payment_method)->toBe(PaymentMethod::Bizum)
+        ->and($latest->method)->toBe(PaymentMethod::Bizum)
+        ->and($order->fresh()->status)->toBe(OrderStatus::PendingPayment);
+});
+
+it('lets a pickup customer switch to paying in store, which confirms the order', function () {
+    post('/cesta', ['variant' => cartProduct(2000)->variants->first()->ulid]);
+    post('/cesta/confirmar', pickupCheckout(['payment_method' => 'card']));
+    $order = Order::query()->sole();
+    get(route('payment.start', $order))->assertOk();
+    Mail::assertNothingQueued();
+
+    post(URL::temporarySignedRoute('payment.method', now()->addHour(), $order), ['payment_method' => 'pay_in_store'])
+        ->assertRedirect();
+
+    $order->refresh();
+    expect($order->status)->toBe(OrderStatus::Confirmed)
+        ->and($order->payment_method)->toBe(PaymentMethod::PayInStore)
+        ->and($order->payment_expires_at)->toBeNull()
+        ->and(Payment::query()->sole()->status)->toBe(PaymentAttemptStatus::Cancelled);
+    Mail::assertQueued(OrderPlaced::class);
+});
+
+it('refuses switching for strangers, paid or expired orders and unavailable methods', function () {
+    $order = onlineOrder();
+    $url = URL::temporarySignedRoute('payment.method', now()->addHour(), $order);
+
+    // Delivery orders cannot be paid in store.
+    post($url, ['payment_method' => 'pay_in_store'])->assertRedirect()->assertSessionHas('payment_error');
+    expect($order->fresh()->payment_method)->toBe(PaymentMethod::Card);
+
+    // Someone else without the signed link.
+    $this->flushSession();
+    post(route('payment.method', $order), ['payment_method' => 'bizum'])->assertNotFound();
+
+    $order->update(['payment_expires_at' => now()->subMinute()]);
+    post($url, ['payment_method' => 'bizum'])->assertRedirect()->assertSessionHas('payment_error');
+    expect($order->fresh()->payment_method)->toBe(PaymentMethod::Card);
 });

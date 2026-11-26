@@ -46,12 +46,47 @@ beforeEach(fn () => Mail::fake());
 it('adds products to the cart and shows the totals', function () {
     $product = cartProduct(2000, compareAt: 2500);
 
-    post('/cesta', ['variant' => $product->variants->first()->ulid, 'quantity' => 2])->assertRedirect('/cesta');
+    // Stays on the page the customer was on (no jump to the checkout).
+    $this->from('/producto/'.$product->slug)
+        ->post('/cesta', ['variant' => $product->variants->first()->ulid, 'quantity' => 2])
+        ->assertRedirect('/producto/'.$product->slug);
 
     get('/cesta')->assertOk()
         ->assertSee($product->name)
         ->assertSee('40,00 €')   // 2 × 20,00
         ->assertSee('10,00 €');  // savings 2 × 5,00
+});
+
+it('adds to the cart in the background and returns the mini cart', function () {
+    $product = cartProduct(2000);
+    $variant = $product->variants->first();
+
+    $this->postJson('/cesta', ['variant' => $variant->ulid, 'quantity' => 2])
+        ->assertOk()
+        ->assertJsonPath('count', 2)
+        ->assertJsonPath('subtotal', '40,00 €')
+        ->assertJsonPath('lines.0.name', $product->name)
+        ->assertJsonPath('lines.0.quantity', 2)
+        ->assertJsonPath('message', "«{$product->name}» se ha añadido a tu cesta.");
+
+    $this->getJson('/cesta/resumen')
+        ->assertOk()
+        ->assertHeader('Cache-Control', 'no-store, private')
+        ->assertJsonPath('count', 2)
+        ->assertJsonPath('lines.0.total', '40,00 €');
+
+    $soldOut = cartProduct(stock: 0)->variants->first();
+    $this->postJson('/cesta', ['variant' => $soldOut->ulid])->assertStatus(422)->assertJsonStructure(['message']);
+    $this->postJson('/cesta', ['variant' => 'missing'])->assertStatus(422);
+});
+
+it('shows the header mini cart instead of linking straight to checkout', function () {
+    $product = cartProduct(2000);
+    post('/cesta', ['variant' => $product->variants->first()->ulid]);
+
+    get('/')->assertOk()
+        ->assertSee('id="mini-cesta"', false)
+        ->assertSee('Finalizar compra');
 });
 
 it('never puts more units in the cart than there are in stock', function () {
