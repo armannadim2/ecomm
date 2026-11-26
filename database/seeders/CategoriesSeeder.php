@@ -137,7 +137,6 @@ class CategoriesSeeder extends Seeder
                 'Tetera',
                 'Taza con filtro',
             ],
-            'Codil',
             'Coladores',
             'Complementos de cocina',
             'Cubería' => [

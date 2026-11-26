@@ -3,10 +3,21 @@
 use App\Domain\Catalog\Models\Category;
 use Database\Seeders\CategoriesSeeder;
 
+function countCategoryTree(array $nodes): int
+{
+    $count = 0;
+    foreach ($nodes as $value) {
+        $count += 1 + (is_array($value) ? countCategoryTree($value) : 0);
+    }
+
+    return $count;
+}
+
 it('seeds the category tree once, with unique slugs', function () {
+    $total = countCategoryTree(CategoriesSeeder::TREE);
     $this->seed(CategoriesSeeder::class);
 
-    expect(Category::query()->count())->toBe(456)
+    expect(Category::query()->count())->toBe($total)
         ->and(Category::query()->whereNull('parent_id')->count())->toBe(25);
 
     $aluminio = Category::query()->where('name', 'Aluminio')->firstOrFail();
@@ -21,6 +32,6 @@ it('seeds the category tree once, with unique slugs', function () {
     Category::query()->where('name', 'Deporte')->update(['is_visible' => false]);
     $this->seed(CategoriesSeeder::class);
 
-    expect(Category::query()->count())->toBe(456)
+    expect(Category::query()->count())->toBe($total)
         ->and(Category::query()->where('name', 'Deporte')->value('is_visible'))->toBeFalse();
 });
