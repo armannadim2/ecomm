@@ -14,6 +14,7 @@ class CheckoutSettings extends Settings
 
     public bool $delivery_enabled;
 
+    /** Peninsula price when no weight rates are set. */
     public int $delivery_cost_cents;
 
     /** Free home delivery from this cart total (0 = never free). */
@@ -26,6 +27,29 @@ class CheckoutSettings extends Settings
 
     /** Opening hours line shown on pickup and confirmation pages. Per language {es, ca, en}. */
     public array $opening_hours;
+
+    /** Balearic Islands price when no weight rates are set. */
+    public int $balearics_cost_cents;
+
+    /** Free delivery threshold also applies to the Balearic Islands. */
+    public bool $balearics_free_delivery;
+
+    /**
+     * Prices by parcel weight, lightest first: list<array{max_kg: float|int, peninsula_cents: int, balearics_cents: int}>.
+     * Empty = flat prices. Heavier parcels than the last row pay the last row.
+     */
+    public array $weight_rates;
+
+    /** The shop's own delivery round (e.g. Barcelona city). */
+    public bool $local_delivery_enabled;
+
+    /** "08001-08042, 08901" — ranges, exact codes or prefixes. */
+    public ?string $local_delivery_postcodes;
+
+    public int $local_delivery_cost_cents;
+
+    /** E.g. "Te lo llevamos en 24 h". Per language {es, ca, en}. */
+    public array $local_delivery_note;
 
     public static function group(): string
     {

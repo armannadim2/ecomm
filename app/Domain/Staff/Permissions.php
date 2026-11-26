@@ -58,6 +58,7 @@ final class Permissions
                 'permissions' => [
                     'orders.view' => 'Ver pedidos',
                     'orders.update' => 'Cambiar el estado de los pedidos y cancelarlos',
+                    'orders.refund' => 'Devolver dinero a los clientes (reembolsos y facturas rectificativas)',
                 ],
             ],
             'returns' => [
@@ -164,7 +165,7 @@ final class Permissions
                 ...$catalogAll, ...$pagesEdit, 'pages.delete', 'pages.restore',
                 ...$campaignsEdit, 'campaigns.delete', 'campaigns.restore',
                 'customers.view', 'staff.view', 'activity.view', 'settings.manage',
-                'orders.view', 'orders.update',
+                'orders.view', 'orders.update', 'orders.refund',
                 'returns.view', 'returns.update',
                 'whatsapp.view', 'whatsapp.reply',
             ],
@@ -178,7 +179,7 @@ final class Permissions
             // Uploads products into the store; an owner/manager reviews them before they go live.
             'Colaborador' => ['products.submit', 'categories.view', 'brands.view'],
             'Almacén' => ['products.view', 'products.stock', 'categories.view', 'brands.view'],
-            'Pedidos' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view', 'orders.update', 'returns.view', 'returns.update', 'whatsapp.view', 'whatsapp.reply'],
+            'Pedidos' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view', 'orders.update', 'orders.refund', 'returns.view', 'returns.update', 'whatsapp.view', 'whatsapp.reply'],
             'Atención al cliente' => ['products.view', 'categories.view', 'brands.view', 'customers.view', 'orders.view', 'returns.view', 'whatsapp.view', 'whatsapp.reply'],
         ];
     }

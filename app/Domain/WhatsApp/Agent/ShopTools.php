@@ -8,6 +8,7 @@ use App\Domain\Content\Blocks\Block;
 use App\Domain\Content\Models\Page;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Orders\Settings\CheckoutSettings;
+use App\Domain\Payments\Settings\PaymentSettings;
 use App\Domain\Store\Settings\StoreSettings;
 use App\Domain\WhatsApp\Models\WhatsAppConversation;
 use App\Support\Money;
@@ -67,6 +68,7 @@ class ShopTools
     {
         $store = app(StoreSettings::class);
         $checkout = app(CheckoutSettings::class);
+        $payments = app(PaymentSettings::class);
         $texts = new Block('info', ['hours' => $checkout->opening_hours, 'note' => $checkout->pickup_note]);
 
         return [
@@ -80,12 +82,18 @@ class ShopTools
             'recogida_en_tienda' => $checkout->pickup_enabled
                 ? 'Gratis. Se pide en la web y se recoge en la tienda con el código de recogida del correo y un documento de identidad. '.$texts->text('note').' Guardamos el pedido 15 días.'
                 : 'No disponible ahora mismo.',
-            'envio_a_domicilio' => $checkout->delivery_enabled
-                ? 'Península y Baleares: '.Money::format($checkout->delivery_cost_cents).', gratis desde '.Money::format($checkout->free_delivery_threshold_cents).'.'
+            'envio_a_domicilio' => $checkout->delivery_enabled && $payments->anyOnlineReady()
+                ? 'Península: '.Money::format($checkout->delivery_cost_cents).', Baleares: '.Money::format($checkout->balearics_cost_cents)
+                    .($checkout->free_delivery_threshold_cents > 0 ? ', gratis desde '.Money::format($checkout->free_delivery_threshold_cents).($checkout->balearics_free_delivery ? '' : ' (solo Península)') : '')
+                    .($checkout->local_delivery_enabled ? '. Entrega local con reparto propio: '.Money::format($checkout->local_delivery_cost_cents) : '')
+                    .'. Si hay precios por peso, el precio exacto sale en la cesta al escribir el código postal. 24–48 h laborables. No se envía a Canarias, Ceuta ni Melilla.'
                 : 'Todavía no disponible (próximamente). De momento, recogida en tienda.',
-            'formas_de_pago' => $checkout->pay_in_store_enabled
-                ? 'Pago en la tienda al recoger el pedido. El pago online (tarjeta, Bizum, PayPal) estará disponible próximamente.'
-                : 'Consultar con la tienda.',
+            'formas_de_pago' => collect([
+                $checkout->pay_in_store_enabled ? 'pago en la tienda al recoger' : null,
+                $payments->cardReady() ? 'tarjeta' : null,
+                $payments->bizumReady() ? 'Bizum' : null,
+                $payments->paypalReady() ? 'PayPal' : null,
+            ])->filter()->implode(', ') ?: 'Consultar con la tienda.',
             'como_comprar' => 'Por WhatsApp no se pueden hacer pedidos ni pagos: el cliente compra en la web (enlace del producto) o directamente en la tienda.',
             'devoluciones' => '14 días naturales desde la recogida o entrega para compras online (derecho de desistimiento). Lo más fácil es traerlo a la tienda. Para iniciar una devolución, pasa la conversación a una persona.',
             'garantia' => 'Garantía legal de 3 años en productos nuevos.',

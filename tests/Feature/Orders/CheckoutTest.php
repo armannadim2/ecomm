@@ -37,7 +37,7 @@ function pickupCheckout(array $overrides = []): array
 {
     return $overrides + [
         'fulfillment' => 'pickup', 'payment_method' => 'pay_in_store',
-        'first_name' => 'Marta', 'last_name' => 'Puig', 'email' => 'marta@example.test', 'phone' => '612345678',
+        'first_name' => 'Marta', 'last_name' => 'Puig', 'email' => 'marta@example.test', 'phone' => '612345678', 'accept_terms' => '1',
     ];
 }
 

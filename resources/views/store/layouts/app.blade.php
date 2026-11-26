@@ -51,6 +51,7 @@
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
     @endunless
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @stack('head')
     @php $pageEditing = \App\Domain\Content\Blocks\PageEditing::active(); @endphp
     @vite(array_filter(['resources/css/app.css', 'resources/js/app.js', $pageEditing ? 'resources/js/page-editor-preview.js' : null]))
@@ -295,6 +296,9 @@
                         @foreach ($footerPages as $footerPage)
                             <li><a href="{{ route('store.page', $footerPage['slug']) }}" class="{{ $footLink }}">{{ $footerPage['title'] }}</a></li>
                         @endforeach
+                        @if (app(\App\Domain\Marketing\Settings\AnalyticsSettings::class)->needsConsent())
+                            <li><button type="button" x-data x-on:click="$dispatch('open-cookie-settings')" class="{{ $footLink }}">{{ __('Configurar cookies') }}</button></li>
+                        @endif
                     </ul>
                 </nav>
             @endif
@@ -318,5 +322,6 @@
     </footer>
 
     @include('store.partials.whatsapp-button')
+    @include('store.partials.cookie-banner', ['analytics' => app(\App\Domain\Marketing\Settings\AnalyticsSettings::class)])
 </body>
 </html>

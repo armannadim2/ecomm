@@ -15,6 +15,9 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    /* Full-page cache of catalogue pages for anonymous visitors (App\Http\Middleware\CachePublicPage). */
+    'page_cache' => (bool) env('PAGE_CACHE', true),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

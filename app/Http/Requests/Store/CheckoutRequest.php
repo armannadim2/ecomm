@@ -39,6 +39,10 @@ class CheckoutRequest extends FormRequest
             'ship_city' => [$delivery, 'nullable', 'string', 'max:100'],
             'customer_note' => ['nullable', 'string', 'max:500'],
             'marketing' => ['nullable', 'boolean'],
+            // Explicit acceptance of the sale conditions (Ley General para la Defensa de los Consumidores, art. 98).
+            'accept_terms' => ['accepted'],
+            // One token per checkout page view: the same token never creates two orders.
+            'checkout_token' => ['nullable', 'string', 'max:64', 'alpha_dash'],
         ];
     }
 
@@ -66,6 +70,7 @@ class CheckoutRequest extends FormRequest
             'ship_line1' => __('dirección'),
             'ship_postal_code' => __('código postal'),
             'ship_city' => __('población'),
+            'accept_terms' => __('condiciones de venta'),
         ];
     }
 }

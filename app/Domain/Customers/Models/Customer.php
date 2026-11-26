@@ -42,6 +42,7 @@ class Customer extends Authenticatable implements MustVerifyEmail
             'marketing_consent_at' => 'datetime',
             'terms_accepted_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'saved_cart' => 'array',
             'anonymized_at' => 'datetime',
             'password' => 'hashed',
         ];

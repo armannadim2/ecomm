@@ -23,6 +23,7 @@ class LegalPagesSeeder extends Seeder
             Page::query()->withTrashed()->firstOrCreate(['slug' => $slug], [
                 'title' => $page['title'],
                 'body' => $page['body'],
+                'translations' => $page['translations'] ?? null,
                 'type' => Page::TYPE_LEGAL,
                 'is_published' => false,
                 'show_in_footer' => true,

@@ -24,7 +24,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * Bodies may contain placeholders like [nombre_legal] or [nif] that are
  * filled from the store settings when the page is shown.
  */
-#[Fillable(['title', 'slug', 'body', 'blocks', 'draft_blocks', 'draft_saved_at', 'type', 'is_published', 'show_in_footer', 'position', 'seo_description'])]
+#[Fillable(['title', 'slug', 'body', 'translations', 'blocks', 'draft_blocks', 'draft_saved_at', 'type', 'is_published', 'show_in_footer', 'position', 'seo_description'])]
 #[UsePolicy(PagePolicy::class)]
 class Page extends Model
 {
@@ -60,6 +60,7 @@ class Page extends Model
             'show_in_footer' => 'boolean',
             'position' => 'integer',
             'blocks' => 'array',
+            'translations' => 'array',
             'draft_blocks' => 'array',
             'draft_saved_at' => 'datetime',
         ];
@@ -76,7 +77,22 @@ class Page extends Model
         $query->where('is_published', true);
     }
 
-    /** Safe HTML for the storefront, with store data filled in. */
+    /** Title in the visitor's language (Spanish when there is no translation). */
+    public function localizedTitle(?string $locale = null): string
+    {
+        $locale ??= app()->getLocale();
+
+        return (string) (filled($this->translations[$locale]['title'] ?? null) ? $this->translations[$locale]['title'] : $this->title);
+    }
+
+    public function localizedBody(?string $locale = null): string
+    {
+        $locale ??= app()->getLocale();
+
+        return (string) (filled($this->translations[$locale]['body'] ?? null) ? $this->translations[$locale]['body'] : $this->body);
+    }
+
+    /** Safe HTML for the storefront in the visitor's language, with store data filled in. */
     public function renderedBody(StoreSettings $settings): string
     {
         $replacements = [];
@@ -91,14 +107,14 @@ class Page extends Model
         $hours = new Block('hours', ['h' => app(CheckoutSettings::class)->opening_hours]);
         $replacements['[horario]'] = e($hours->text('h') ?: '—');
 
-        return strtr(Str::sanitizeHtml((string) $this->body), $replacements);
+        return strtr(Str::sanitizeHtml($this->localizedBody()), $replacements);
     }
 
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->useLogName('content')
-            ->logOnly(['title', 'slug', 'is_published', 'body', 'blocks'])
+            ->logOnly(['title', 'slug', 'is_published', 'body', 'translations', 'blocks'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }

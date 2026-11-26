@@ -10,6 +10,7 @@ enum PaymentStatus: string implements HasColor, HasLabel
     case Pending = 'pending';
     case Paid = 'paid';
     case Failed = 'failed';
+    case PartiallyRefunded = 'partially_refunded';
     case Refunded = 'refunded';
 
     public function getLabel(): string
@@ -18,6 +19,7 @@ enum PaymentStatus: string implements HasColor, HasLabel
             self::Pending => 'Pendiente',
             self::Paid => 'Pagado',
             self::Failed => 'Fallido',
+            self::PartiallyRefunded => 'Devuelto en parte',
             self::Refunded => 'Devuelto',
         };
     }
@@ -28,7 +30,14 @@ enum PaymentStatus: string implements HasColor, HasLabel
             self::Pending => 'warning',
             self::Paid => 'success',
             self::Failed => 'danger',
+            self::PartiallyRefunded => 'info',
             self::Refunded => 'gray',
         };
+    }
+
+    /** Money was received (and not all of it returned yet). */
+    public function isPaid(): bool
+    {
+        return in_array($this, [self::Paid, self::PartiallyRefunded], true);
     }
 }

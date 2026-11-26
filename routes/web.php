@@ -2,13 +2,16 @@
 
 use App\Http\Controllers\Admin\OrderMailPreviewController;
 use App\Http\Controllers\Admin\PageEditorPreviewController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Store\AccountController;
 use App\Http\Controllers\Store\AuthController;
 use App\Http\Controllers\Store\CartController;
 use App\Http\Controllers\Store\CatalogController;
 use App\Http\Controllers\Store\CheckoutController;
+use App\Http\Controllers\Store\CookieConsentController;
 use App\Http\Controllers\Store\LocaleController;
 use App\Http\Controllers\Store\PageController;
+use App\Http\Controllers\Store\PaymentController;
 use App\Http\Controllers\Store\ReturnRequestController;
 use Filament\Http\Middleware\Authenticate as FilamentAuthenticate;
 use Filament\Http\Middleware\SetUpPanel;
@@ -19,12 +22,15 @@ use Illuminate\Support\Facades\Route;
 | the future storefront design refer to names, never to hard-coded paths.
 */
 
-Route::get('/', [CatalogController::class, 'home'])->name('store.home');
-Route::get('/categorias', [CatalogController::class, 'categories'])->name('store.categories');
-Route::get('/categoria/{slug}', [CatalogController::class, 'category'])->name('store.category');
-Route::get('/producto/{slug}', [CatalogController::class, 'product'])->name('store.product');
+// Catalogue pages are served from the page cache to visitors without a cart or session data (CachePublicPage).
+Route::middleware('page.cache')->group(function () {
+    Route::get('/', [CatalogController::class, 'home'])->name('store.home');
+    Route::get('/categorias', [CatalogController::class, 'categories'])->name('store.categories');
+    Route::get('/categoria/{slug}', [CatalogController::class, 'category'])->name('store.category');
+    Route::get('/producto/{slug}', [CatalogController::class, 'product'])->name('store.product');
+    Route::get('/pagina/{slug}', [PageController::class, 'show'])->name('store.page');
+});
 Route::get('/buscar', [CatalogController::class, 'search'])->name('store.search')->middleware('throttle:60,1');
-Route::get('/pagina/{slug}', [PageController::class, 'show'])->name('store.page');
 Route::get('/sitemap.xml', [PageController::class, 'sitemap'])->name('store.sitemap');
 Route::get('/robots.txt', [PageController::class, 'robots'])->name('store.robots');
 Route::get('/idioma/{locale}', LocaleController::class)->name('locale.switch');
@@ -37,6 +43,19 @@ Route::delete('/cesta/{variant}', [CartController::class, 'remove'])->name('cart
 Route::delete('/cesta', [CartController::class, 'clear'])->name('cart.clear');
 Route::post('/cesta/confirmar', [CheckoutController::class, 'store'])->name('checkout.place')->middleware('throttle:10,1');
 Route::get('/pedido/{order}', [CheckoutController::class, 'show'])->name('order.show');
+
+// Online payment (Redsys cards + Bizum, PayPal). Return pages only redirect: they never mark an order paid.
+Route::get('/pedido/{order}/pagar', [PaymentController::class, 'start'])->name('payment.start')->middleware('throttle:20,1');
+Route::match(['get', 'post'], '/pago/redsys/{payment}/{result}', [PaymentController::class, 'redsysReturn'])
+    ->whereIn('result', ['ok', 'ko'])->name('payment.redsys.return');
+Route::get('/pago/paypal/{payment}/vuelta', [PaymentController::class, 'paypalReturn'])->name('payment.paypal.return')->middleware('throttle:30,1');
+Route::get('/pago/paypal/{payment}/cancelado', [PaymentController::class, 'paypalCancel'])->name('payment.paypal.cancel');
+
+// Invoice PDF for the customer (signed link or own account).
+Route::get('/factura/{invoice}', [InvoiceController::class, 'customer'])->name('invoice.download')->middleware('throttle:30,1');
+
+// Cookie consent (AEPD): the choice is kept in a cookie and logged with the policy version.
+Route::post('/cookies/consentimiento', CookieConsentController::class)->name('cookies.consent')->middleware('throttle:30,1');
 
 // Guests only
 Route::middleware('guest:web')->prefix('cuenta')->group(function () {
@@ -78,6 +97,8 @@ Route::middleware('auth:web')->prefix('cuenta')->group(function () {
         Route::post('/devoluciones', [ReturnRequestController::class, 'store'])->middleware('throttle:10,1')->name('account.returns.store');
         Route::get('/devoluciones/{returnRequest}', [ReturnRequestController::class, 'show'])->name('account.returns.show');
 
+        Route::post('/pedidos/{order}/repetir', [AccountController::class, 'reorder'])->middleware('throttle:20,1')->name('account.reorder');
+
         Route::get('/privacidad', [AccountController::class, 'privacy'])->name('account.privacy');
         Route::post('/privacidad/exportar', [AccountController::class, 'exportData'])
             ->middleware('throttle:3,1')->name('account.export');
@@ -89,6 +110,11 @@ Route::middleware('auth:web')->prefix('cuenta')->group(function () {
 Route::get('/admin/editor/vista-previa/{page}', PageEditorPreviewController::class)
     ->middleware([SetUpPanel::class.':admin', FilamentAuthenticate::class])
     ->name('admin.page-editor.preview');
+
+// Invoice PDF for staff.
+Route::get('/admin/facturas/{invoice}', [InvoiceController::class, 'staff'])
+    ->middleware([SetUpPanel::class.':admin', FilamentAuthenticate::class])
+    ->name('admin.invoice');
 
 // Order e-mails as the customer sees them (staff only; ?locale=es|ca|en).
 Route::get('/admin/pedidos/{order}/correo/{mail}', OrderMailPreviewController::class)

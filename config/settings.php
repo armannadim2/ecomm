@@ -1,7 +1,9 @@
 <?php
 
 use App\Domain\Content\Settings\StorefrontContentSettings;
+use App\Domain\Marketing\Settings\AnalyticsSettings;
 use App\Domain\Orders\Settings\CheckoutSettings;
+use App\Domain\Payments\Settings\PaymentSettings;
 use App\Domain\Store\Settings\StoreSettings;
 use App\Domain\WhatsApp\Settings\WhatsAppSettings;
 use Spatie\LaravelData\Data;
@@ -22,6 +24,8 @@ return [
         StorefrontContentSettings::class,
         CheckoutSettings::class,
         WhatsAppSettings::class,
+        PaymentSettings::class,
+        AnalyticsSettings::class,
     ],
 
     /*

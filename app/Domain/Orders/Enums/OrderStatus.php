@@ -47,7 +47,8 @@ enum OrderStatus: string implements HasColor, HasLabel
     public function next(Fulfillment $fulfillment): array
     {
         return match ($this) {
-            self::PendingPayment => [self::Confirmed, self::Cancelled],
+            // Only a confirmed payment (Redsys/PayPal) moves an order out of PendingPayment; staff can only cancel it.
+            self::PendingPayment => [self::Cancelled],
             self::Confirmed => [self::Preparing, self::Cancelled],
             self::Preparing => [$fulfillment === Fulfillment::Pickup ? self::ReadyForPickup : self::Shipped, self::Cancelled],
             self::ReadyForPickup, self::Shipped => [self::Completed, self::Cancelled],

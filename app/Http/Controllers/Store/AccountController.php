@@ -8,10 +8,12 @@ use App\Domain\Customers\Actions\ExportCustomerData;
 use App\Domain\Customers\Actions\SaveAddress;
 use App\Domain\Customers\Models\Address;
 use App\Domain\Customers\Models\Customer;
+use App\Domain\Orders\Cart\Cart;
 use App\Domain\Orders\Enums\Fulfillment;
 use App\Domain\Orders\Enums\OrderStatus;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Orders\Settings\CheckoutSettings;
+use App\Domain\Shared\Exceptions\DomainRuleException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Store\AddressRequest;
 use Illuminate\Http\RedirectResponse;
@@ -31,7 +33,7 @@ class AccountController extends Controller
     {
         /** @var Customer $customer */
         $customer = $request->user();
-        $orders = $customer->orders()->with('items')->withCount('items')->limit(20)->get();
+        $orders = $customer->orders()->with(['items', 'invoices'])->withCount('items')->limit(20)->get();
 
         // The pickup order to show first: ready at the counter, else the newest one still open.
         $active = $orders->first(fn (Order $o) => $o->fulfillment === Fulfillment::Pickup && $o->status === OrderStatus::ReadyForPickup)
@@ -44,6 +46,36 @@ class AccountController extends Controller
             'address' => $customer->addresses()->first(),
             'openingHours' => (new Block('hours', ['h' => app(CheckoutSettings::class)->opening_hours]))->text('h'),
         ]);
+    }
+
+    /** "Volver a comprar": puts the products of an old order back in the cart (what is still on sale). */
+    public function reorder(Request $request, Order $order, Cart $cart): RedirectResponse
+    {
+        abort_unless($order->customer_id === $request->user()->id, 404);
+
+        $added = 0;
+        $missing = 0;
+
+        foreach ($order->items()->with('variant.product')->get() as $item) {
+            if (! $item->variant) {
+                $missing++;
+
+                continue;
+            }
+
+            try {
+                $cart->add($item->variant, $item->quantity);
+                $added++;
+            } catch (DomainRuleException) {
+                $missing++;
+            }
+        }
+
+        $message = $added === 0
+            ? __('Ninguno de esos productos está disponible ahora mismo.')
+            : ($missing > 0 ? __('Hemos añadido a la cesta lo que sigue disponible (:count productos ya no lo están).', ['count' => $missing]) : __('Hemos añadido los productos a tu cesta.'));
+
+        return redirect()->route($added ? 'cart.show' : 'account.dashboard')->with('status', $message);
     }
 
     public function editProfile(Request $request): View

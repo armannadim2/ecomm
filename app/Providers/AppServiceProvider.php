@@ -3,19 +3,24 @@
 namespace App\Providers;
 
 use App\Domain\Catalog\Listeners\StripImageMetadata;
+use App\Domain\Catalog\Models\Brand;
 use App\Domain\Catalog\Models\Category;
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Catalog\Models\ProductVariant;
 use App\Domain\Content\Models\Page;
 use App\Domain\Integrations\WebhookObserver;
+use App\Domain\Invoices\Listeners\IssueInvoiceForPaidOrder;
 use App\Domain\Marketing\Models\Campaign;
 use App\Domain\Orders\Cart\Cart;
+use App\Domain\Orders\Events\OrderPaid;
+use App\Domain\Orders\Events\OrderRefunded;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Staff\Models\Staff;
 use App\Domain\Staff\Policies\ActivityPolicy;
 use App\Domain\Staff\Policies\RolePolicy;
 use App\Domain\WhatsApp\Agent\AgentModel;
 use App\Domain\WhatsApp\Agent\ClaudeAgentModel;
+use App\Http\Middleware\PageCache;
 use App\Http\View\StoreLayoutComposer;
 use Filament\Support\Facades\FilamentTimezone;
 use Illuminate\Auth\Events\Login;
@@ -32,6 +37,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\LaravelSettings\Events\SettingsSaved;
 use Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAddedEvent;
 use Spatie\Permission\Models\Role;
 
@@ -60,6 +66,10 @@ class AppServiceProvider extends ServiceProvider
         // Uploaded photos lose their EXIF data (GPS, phone model) before thumbnails are made.
         Event::listen(MediaHasBeenAddedEvent::class, StripImageMetadata::class);
 
+        // Invoices: issued when an order is paid; a corrective invoice for every refund.
+        Event::listen(OrderPaid::class, IssueInvoiceForPaidOrder::class);
+        Event::listen(OrderRefunded::class, IssueInvoiceForPaidOrder::class);
+
         // Dates are stored in UTC and shown to staff in Spanish time.
         FilamentTimezone::set('Europe/Madrid');
     }
@@ -82,20 +92,26 @@ class AppServiceProvider extends ServiceProvider
         // Menu, footer and sitemap are cached; refresh them as soon as staff change something.
         $flush = function (): void {
             Cache::forget('store.menu');
-            Cache::forget('store.footer');
+            foreach (array_keys((array) config('app.available_locales')) as $locale) {
+                Cache::forget('store.footer.'.$locale);
+            }
             Cache::forget('store.page-slugs');
             Cache::forget('sitemap.xml');
             Cache::forget('store.campaign');
+            PageCache::flush();
             // Department covers on the home page (BlockRenderer), one key per category.
             foreach (Category::query()->pluck('id') as $id) {
                 Cache::forget("store.category-cover.{$id}");
             }
         };
 
-        foreach ([Category::class, Page::class, Product::class, Campaign::class] as $model) {
+        foreach ([Category::class, Page::class, Product::class, ProductVariant::class, Brand::class, Campaign::class] as $model) {
             $model::saved($flush);
             $model::deleted($flush);
         }
+
+        // Shop data, texts, delivery prices, cookie tags… appear on every page.
+        Event::listen(SettingsSaved::class, fn () => PageCache::flush());
     }
 
     private function configureSafety(): void

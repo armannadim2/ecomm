@@ -20,6 +20,9 @@
     $order_ = array_map(fn ($s) => $s[0], $steps);
     $currentIndex = $order->status === OrderStatus::PendingPayment ? -1 : array_search($order->status, $order_, true);
     $cancelled = $order->status === OrderStatus::Cancelled;
+    $awaitingPayment = $order->isAwaitingOnlinePayment();
+    $paymentOpen = $awaitingPayment && ! $order->payment_expires_at?->isPast();
+    $checking = $awaitingPayment && session('payment_returned');
     $placed = $order->placed_at->timezone('Europe/Madrid')->locale(app()->getLocale());
 @endphp
 
@@ -28,6 +31,10 @@
 
 @push('head')
     <meta name="robots" content="noindex">
+    {{-- Back from the bank: the notification usually arrives within seconds. --}}
+    @if ($checking)
+        <meta http-equiv="refresh" content="5">
+    @endif
 @endpush
 
 @section('content')
@@ -35,18 +42,39 @@
     <section class="w-full bg-surface-container-low px-4 py-10 md:px-12">
         <div class="mx-auto flex max-w-[1320px] flex-col justify-between gap-6 md:flex-row md:items-center">
             <div class="flex items-start gap-4 sm:items-center">
-                <span @class(['flex size-14 shrink-0 items-center justify-center rounded-full shadow-sm', 'bg-success-container text-on-success-fixed-variant' => ! $cancelled, 'bg-error-container text-error' => $cancelled]) aria-hidden="true">
-                    @svg($cancelled ? 'heroicon-s-x-circle' : 'heroicon-s-check-circle', 'size-8')
+                <span @class(['flex size-14 shrink-0 items-center justify-center rounded-full shadow-sm', 'bg-success-container text-on-success-fixed-variant' => ! $cancelled && ! $awaitingPayment, 'bg-error-container text-error' => $cancelled, 'bg-secondary-container text-secondary' => $awaitingPayment]) aria-hidden="true">
+                    @svg($cancelled ? 'heroicon-s-x-circle' : ($awaitingPayment ? 'heroicon-s-clock' : 'heroicon-s-check-circle'), 'size-8')
                 </span>
                 <div class="flex flex-col">
                     <div class="mb-1 flex flex-wrap items-center gap-2">
-                        <span @class(['rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase text-white', 'bg-success' => ! $cancelled, 'bg-error' => $cancelled])>{{ __($order->status->getLabel()) }}</span>
+                        <span @class(['rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase text-white', 'bg-success' => ! $cancelled && ! $awaitingPayment, 'bg-secondary' => $awaitingPayment, 'bg-error' => $cancelled])>{{ __($order->status->getLabel()) }}</span>
                         <span class="text-xs font-medium text-on-surface-variant">{{ __('Ref.') }} #{{ $order->number }} · {{ __('Realizado el :date', ['date' => $placed->isoFormat('LLL')]) }}</span>
                     </div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-primary sm:text-[32px] sm:leading-10">
-                        {{ $cancelled ? __('Pedido cancelado') : __('¡Pedido confirmado! Gracias, :name', ['name' => $order->first_name]) }}
+                        @if ($cancelled)
+                            {{ __('Pedido cancelado') }}
+                        @elseif ($checking)
+                            {{ __('Estamos confirmando tu pago…') }}
+                        @elseif ($awaitingPayment)
+                            {{ __('Falta completar el pago') }}
+                        @else
+                            {{ __('¡Pedido confirmado! Gracias, :name', ['name' => $order->first_name]) }}
+                        @endif
                     </h1>
-                    @unless ($cancelled)
+                    @if ($cancelled && $order->cancel_reason === \App\Domain\Orders\Actions\ChangeOrderStatus::CANCEL_PAYMENT_EXPIRED)
+                        <p class="mt-1 text-sm text-on-surface-variant">{{ __('No recibimos el pago a tiempo y los productos han vuelto a la venta. No se ha hecho ningún cargo.') }}</p>
+                    @elseif ($checking)
+                        <p class="mt-1 text-sm text-on-surface-variant">{{ __('El banco nos avisa en unos segundos. Esta página se actualiza sola.') }}</p>
+                    @elseif ($awaitingPayment)
+                        <p class="mt-1 text-sm text-on-surface-variant">
+                            @if ($paymentOpen)
+                                {{ __('Guardamos tus productos hasta las :time. Paga para confirmar el pedido.', ['time' => $order->payment_expires_at->timezone('Europe/Madrid')->format('H:i')]) }}
+                            @else
+                                {{ __('El tiempo para pagar ha terminado. Si ya has pagado, lo confirmaremos en unos minutos.') }}
+                            @endif
+                        </p>
+                    @endif
+                    @unless ($cancelled || $awaitingPayment)
                         <p class="mt-1 text-sm text-on-surface-variant">
                             {!! __('Hemos enviado el resumen a :email y te avisaremos cuando :when.', [
                                 'email' => '<span class="font-bold text-on-surface">'.e($order->email).'</span>',
@@ -57,6 +85,16 @@
                 </div>
             </div>
             <div class="flex shrink-0 flex-wrap items-center gap-2">
+                @if ($paymentOpen && ! $checking)
+                    <a href="{{ route('payment.start', $order) }}" class="flex items-center gap-2 rounded-xl bg-secondary px-5 py-3 text-sm font-extrabold text-white shadow-cta transition-colors hover:bg-secondary-hover print:hidden">
+                        @svg('heroicon-s-lock-closed', 'size-5') <span>{{ __('Pagar ahora · :amount', ['amount' => Money::format($order->total_cents)]) }}</span>
+                    </a>
+                @endif
+                @foreach ($order->invoices as $invoice)
+                    <a href="{{ \Illuminate\Support\Facades\URL::temporarySignedRoute('invoice.download', now()->addHour(), $invoice) }}" class="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[13px] font-semibold text-primary shadow-sm transition-colors hover:bg-surface-container-high print:hidden">
+                        @svg('heroicon-o-document-arrow-down', 'size-[18px]') <span>{{ $invoice->isCorrective() ? __('Factura rectificativa :n', ['n' => $invoice->code]) : __('Factura :n', ['n' => $invoice->code]) }}</span>
+                    </a>
+                @endforeach
                 <button type="button" onclick="window.print()" class="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[13px] font-semibold text-primary shadow-sm transition-colors hover:bg-surface-container-high print:hidden">
                     @svg('heroicon-o-printer', 'size-[18px]') <span>{{ __('Imprimir tique / PDF') }}</span>
                 </button>
@@ -69,6 +107,24 @@
             </div>
         </div>
     </section>
+
+    @if (session('payment_error') && ! $order->payment_status->isPaid())
+        <div class="mx-auto mt-6 max-w-[1320px] px-4 md:px-12" role="alert">
+            <p class="flex items-center gap-2 rounded-xl bg-error-container px-4 py-3 text-sm font-semibold text-error">@svg('heroicon-o-exclamation-triangle', 'size-5 shrink-0') {{ session('payment_error') }}</p>
+        </div>
+    @endif
+
+    @if ($order->tracking_number)
+        <div class="mx-auto mt-6 max-w-[1320px] px-4 md:px-12">
+            <p class="flex flex-wrap items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm text-on-surface shadow-sm ring-1 ring-outline-variant/60">
+                @svg('heroicon-o-truck', 'size-5 shrink-0 text-secondary')
+                <span>{{ __('Seguimiento:') }} <strong>{{ $order->carrier }}</strong> {{ $order->tracking_number }}</span>
+                @if ($order->tracking_url)
+                    <a href="{{ $order->tracking_url }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-secondary underline-offset-2 hover:underline">{{ __('Ver el envío') }}</a>
+                @endif
+            </p>
+        </div>
+    @endif
 
     <section class="w-full px-4 py-10 md:px-12">
         <div class="mx-auto grid max-w-[1320px] grid-cols-1 items-start gap-6 lg:grid-cols-12">

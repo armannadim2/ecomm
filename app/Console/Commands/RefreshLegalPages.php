@@ -31,6 +31,7 @@ class RefreshLegalPages extends Command
             $page->fill([
                 'title' => $text['title'],
                 'body' => $text['body'],
+                'translations' => $text['translations'] ?? null,
                 'type' => Page::TYPE_LEGAL,
                 'show_in_footer' => true,
                 'position' => $page->exists ? $page->position : $position,

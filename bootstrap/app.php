@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Shared\Exceptions\DomainRuleException;
+use App\Http\Middleware\CachePublicPage;
 use App\Http\Middleware\EnsureApiClient;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetStorefrontLocale;
@@ -22,11 +23,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SecurityHeaders::class);
         $middleware->web(append: [SetStorefrontLocale::class]);
 
+        // Redsys may send the customer back with a cross-site POST (no CSRF token); that page only redirects.
+        $middleware->validateCsrfTokens(except: ['pago/redsys/*']);
+
+        // The cookie choice is read by the browser (cached pages), so it is not encrypted. It holds no personal data.
+        $middleware->encryptCookies(except: ['tm_consent']);
+
         // REST API for outside systems (routes/api.php): key scopes and "is this an API client?".
         $middleware->alias([
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
             'api.client' => EnsureApiClient::class,
+            'page.cache' => CachePublicPage::class,
         ]);
 
         // Hostinger and Cloudflare sit in front of the app; trust their forwarded headers.

@@ -23,7 +23,7 @@ function mailTestOrder(): Order
     post('/cesta', ['variant' => $product->fresh('variants')->variants->first()->ulid, 'quantity' => 2]);
     post('/cesta/confirmar', [
         'fulfillment' => 'pickup', 'payment_method' => 'pay_in_store',
-        'first_name' => 'Marta', 'last_name' => 'Puig', 'email' => 'marta@example.test', 'phone' => '612345678',
+        'first_name' => 'Marta', 'last_name' => 'Puig', 'email' => 'marta@example.test', 'phone' => '612345678', 'accept_terms' => '1',
     ]);
 
     return Order::query()->sole();

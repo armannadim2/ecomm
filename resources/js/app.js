@@ -5,6 +5,8 @@
  */
 import Alpine from 'alpinejs';
 import './campaign-effects';
+import cookieConsent from './cookie-consent';
 
 window.Alpine = Alpine;
+Alpine.data('cookieConsent', cookieConsent);
 Alpine.start();

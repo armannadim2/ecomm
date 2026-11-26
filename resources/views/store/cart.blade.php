@@ -4,8 +4,10 @@
     Cart + checkout on one page. Design: Stitch "Cistella i Pagament - Tot & Més Barcelona" (desktop + mobile).
     Variables: $lines (Collection<CartLine>), $totals (['pickup' => CartTotals, 'delivery' => CartTotals]),
     $fulfillment (Fulfillment), $settings (CheckoutSettings), $paymentMethods (list<PaymentMethod>),
-    $customer (?Customer), $address (?Address), $crossSell (Collection<Product>)
-    Online payments (Bizum, card, PayPal) and home delivery show as "coming soon" until their gateway is connected.
+    $customer (?Customer), $address (?Address), $crossSell (Collection<Product>), $checkoutToken (string),
+    $deliveryQuotes (array<zone, cents> for this cart), $deliveryAvailable (bool)
+    Online payments show as "coming soon" until switched on in "Pagos online"; home delivery needs one of them.
+    The delivery price follows the postal code (local round / Peninsula / Balearics) live in the summary.
 --}}
 
 @php
@@ -33,7 +35,30 @@
 
 @section('content')
     <div class="mx-auto w-full max-w-[1360px] px-4 py-4 md:px-8 lg:px-12 lg:py-6"
-         x-data="{ fulfillment: @js($fulfillment->value), payment: @js($defaultPayment) }">
+         x-data="{
+            fulfillment: @js($fulfillment->value),
+            payment: @js($defaultPayment),
+            postal: @js((string) old('ship_postal_code', $address?->postal_code)),
+            quotes: @js($deliveryQuotes),
+            localCodes: @js($settings->local_delivery_enabled ? (string) $settings->local_delivery_postcodes : ''),
+            subtotal: @js($delivery->subtotal),
+            productsTax: @js($delivery->tax - \App\Domain\Orders\Cart\Cart::taxIncluded($delivery->shipping, 21)),
+            tax() { const s = this.shipping(); return this.productsTax + Math.round(s - s / 1.21); },
+            zone() {
+                const pc = (this.postal || '').trim();
+                if (!/^\d{5}$/.test(pc)) return 'peninsula';
+                if (this.quotes.local !== undefined && this.inLocal(pc)) return 'local';
+                return pc.startsWith('07') ? 'balearics' : 'peninsula';
+            },
+            inLocal(pc) {
+                return this.localCodes.split(/[\s,;]+/).filter(Boolean).some(e => {
+                    const r = e.match(/^(\d{5})-(\d{5})$/);
+                    return r ? pc >= r[1] && pc <= r[2] : /^\d{2,5}$/.test(e) && pc.startsWith(e);
+                });
+            },
+            shipping() { return this.quotes[this.zone()] ?? this.quotes.peninsula ?? 0; },
+            euros(c) { return (c / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; },
+         }">
 
         {{-- Top bar: back link + steps --}}
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -192,6 +217,7 @@
                     <form id="checkout-form" method="post" action="{{ route('checkout.place') }}" class="flex flex-col gap-6" novalidate>
                         @csrf
                         <input type="hidden" name="fulfillment" :value="fulfillment" value="{{ $fulfillment->value }}">
+                        <input type="hidden" name="checkout_token" value="{{ $checkoutToken }}">
 
                         {{-- 2. Delivery method --}}
                         <section class="{{ $card }} flex flex-col gap-4" aria-labelledby="entrega-titulo">
@@ -201,7 +227,7 @@
                             </div>
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2" role="radiogroup" aria-label="{{ __('Forma de entrega') }}">
                                 @foreach ([Fulfillment::Pickup, Fulfillment::Delivery] as $option)
-                                    @php $enabled = $option === Fulfillment::Pickup ? $settings->pickup_enabled : $settings->delivery_enabled; @endphp
+                                    @php $enabled = $option === Fulfillment::Pickup ? $settings->pickup_enabled : $deliveryAvailable; @endphp
                                     <label @class(['relative flex flex-col rounded-xl p-4 shadow-sm ring-2 transition-all', 'cursor-pointer hover:shadow-md' => $enabled, 'cursor-not-allowed opacity-60' => ! $enabled])
                                            :class="fulfillment === '{{ $option->value }}' ? 'bg-surface-container-low ring-secondary' : 'bg-white ring-transparent'">
                                         <input type="radio" class="sr-only" value="{{ $option->value }}" x-model="fulfillment" @disabled(! $enabled)
@@ -220,10 +246,8 @@
                                                     {{ __('Próximamente') }}
                                                 @elseif ($option === Fulfillment::Pickup)
                                                     {{ __('GRATIS') }}
-                                                @elseif ($delivery->shipping === 0)
-                                                    {{ __('GRATIS') }}
                                                 @else
-                                                    {{ Money::format($delivery->shipping) }}
+                                                    <span x-text="shipping() === 0 ? @js(__('GRATIS')) : euros(shipping())">{{ $delivery->shipping === 0 ? __('GRATIS') : Money::format($delivery->shipping) }}</span>
                                                 @endif
                                             </span>
                                         </span>
@@ -238,6 +262,19 @@
                                                 @endif
                                             @else
                                                 <span class="text-sm text-on-surface">{{ __('A cualquier dirección de la Península y Baleares') }}</span>
+                                                @if ($enabled)
+                                                    <span class="text-[11px] text-on-surface-variant">
+                                                        {{ __('Península: :p', ['p' => ($deliveryQuotes['peninsula'] ?? 0) === 0 ? __('gratis') : Money::format($deliveryQuotes['peninsula'] ?? 0)]) }}
+                                                        · {{ __('Baleares: :b', ['b' => ($deliveryQuotes['balearics'] ?? 0) === 0 ? __('gratis') : Money::format($deliveryQuotes['balearics'] ?? 0)]) }}
+                                                        @isset($deliveryQuotes['local'])
+                                                            · {{ __('Entrega local: :l', ['l' => $deliveryQuotes['local'] === 0 ? __('gratis') : Money::format($deliveryQuotes['local'])]) }}
+                                                        @endisset
+                                                    </span>
+                                                    @php $localNote = (new \App\Domain\Content\Blocks\Block('checkout', ['l' => $settings->local_delivery_note]))->text('l'); @endphp
+                                                    @if ($settings->local_delivery_enabled && $localNote)
+                                                        <span x-show="zone() === 'local'" x-cloak class="flex items-center gap-1.5 rounded-lg bg-success-container/60 px-2.5 py-1 text-[11px] font-semibold text-on-success-fixed-variant">@svg('heroicon-o-bolt', 'size-4') {{ $localNote }}</span>
+                                                    @endif
+                                                @endif
                                                 <span class="flex items-center gap-1.5 rounded-lg bg-surface-container-high/60 px-2.5 py-1 text-[11px] text-on-surface-variant">
                                                     @svg('heroicon-o-truck', 'size-4 text-primary')
                                                     @if ($enabled && $settings->free_delivery_threshold_cents > 0)
@@ -268,7 +305,7 @@
                                 </div>
                                 <div>
                                     <label for="ship_postal_code" class="{{ $label }}">{{ __('Código postal') }} <span class="text-secondary">*</span></label>
-                                    <input id="ship_postal_code" name="ship_postal_code" value="{{ old('ship_postal_code', $address?->postal_code) }}" inputmode="numeric" maxlength="5" autocomplete="postal-code" class="{{ $input }} mt-1.5" @error('ship_postal_code') aria-invalid="true" @enderror>
+                                    <input id="ship_postal_code" name="ship_postal_code" x-model="postal" value="{{ old('ship_postal_code', $address?->postal_code) }}" inputmode="numeric" maxlength="5" autocomplete="postal-code" class="{{ $input }} mt-1.5" @error('ship_postal_code') aria-invalid="true" @enderror>
                                     @error('ship_postal_code') <p class="mt-1 text-sm text-error">{{ $message }}</p> @enderror
                                 </div>
                                 <div>
@@ -381,11 +418,15 @@
                                 @endif
                                 <div class="flex items-center justify-between">
                                     <span class="text-on-surface-variant">{{ $key === 'pickup' ? __('Recogida en tienda') : __('Envío a domicilio') }}</span>
-                                    <span class="font-bold {{ $t->shipping === 0 ? 'uppercase text-success' : 'text-primary' }}">{{ $t->shipping === 0 ? __('GRATIS') : Money::format($t->shipping) }}</span>
+                                    @if ($key === 'delivery')
+                                        <span class="font-bold" :class="shipping() === 0 ? 'uppercase text-success' : 'text-primary'" x-text="shipping() === 0 ? @js(__('GRATIS')) : euros(shipping())">{{ $t->shipping === 0 ? __('GRATIS') : Money::format($t->shipping) }}</span>
+                                    @else
+                                        <span class="font-bold {{ $t->shipping === 0 ? 'uppercase text-success' : 'text-primary' }}">{{ $t->shipping === 0 ? __('GRATIS') : Money::format($t->shipping) }}</span>
+                                    @endif
                                 </div>
                                 <div class="flex items-center justify-between pt-1 text-xs text-on-surface-variant">
                                     <span>{{ __('IVA incluido') }}</span>
-                                    <span>{{ Money::format($t->tax) }}</span>
+                                    <span @if ($key === 'delivery') x-text="euros(tax())" @endif>{{ Money::format($t->tax) }}</span>
                                 </div>
                                 <div class="my-1 h-px w-full bg-surface-container-high"></div>
                                 <div class="flex items-end justify-between py-1">
@@ -394,7 +435,7 @@
                                         <span class="text-xs font-semibold text-success">{{ __('Todos los impuestos incluidos') }}</span>
                                     </div>
                                     <div class="flex flex-col items-end">
-                                        <span class="whitespace-nowrap text-3xl font-black leading-none tracking-tight text-primary xl:text-[34px]">{{ Money::format($t->total()) }}</span>
+                                        <span class="whitespace-nowrap text-3xl font-black leading-none tracking-tight text-primary xl:text-[34px]" @if ($key === 'delivery') x-text="euros(subtotal + shipping())" @endif>{{ Money::format($t->total()) }}</span>
                                         @if ($t->savings > 0)
                                             <span class="mt-1 text-xs font-bold text-secondary">{{ __('Ahorras :amount hoy', ['amount' => Money::format($t->savings)]) }}</span>
                                         @endif
@@ -402,17 +443,26 @@
                                 </div>
                                 <button type="submit" form="checkout-form" :disabled="!payment"
                                         class="flex min-h-[54px] w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3.5 text-center text-base font-extrabold text-white shadow-lg shadow-secondary/25 transition-all hover:bg-secondary-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
-                                    @svg('heroicon-s-lock-closed', 'size-5') <span>{{ __('Confirmar pedido · :amount', ['amount' => Money::format($t->total())]) }}</span>
+                                    @svg('heroicon-s-lock-closed', 'size-5')
+                                    @if ($key === 'delivery')
+                                        <span x-text="@js(__('Confirmar pedido · :amount')).replace(':amount', euros(subtotal + shipping()))">{{ __('Confirmar pedido · :amount', ['amount' => Money::format($t->total())]) }}</span>
+                                    @else
+                                        <span>{{ __('Confirmar pedido · :amount', ['amount' => Money::format($t->total())]) }}</span>
+                                    @endif
                                 </button>
                             </div>
                         @endforeach
-                        <p class="px-2 text-center text-[11px] leading-relaxed text-on-surface-variant">
-                            {!! __('Al confirmar la compra aceptas las :terms y la :privacy de :store.', [
-                                'terms' => '<a href="'.e(route('store.page', 'condiciones-generales')).'" class="underline hover:text-primary" target="_blank">'.e(__('condiciones de venta')).'</a>',
-                                'privacy' => '<a href="'.e(route('store.page', 'politica-de-privacidad')).'" class="underline hover:text-primary" target="_blank">'.e(__('política de privacidad')).'</a>',
-                                'store' => e($store->store_name),
-                            ]) !!}
-                        </p>
+                        <label class="flex cursor-pointer items-start gap-3 rounded-lg bg-surface-container-low p-3">
+                            <input type="checkbox" name="accept_terms" value="1" form="checkout-form" required @checked(old('accept_terms')) class="mt-0.5 size-4 shrink-0 accent-secondary" @error('accept_terms') aria-invalid="true" @enderror>
+                            <span class="text-xs leading-relaxed text-on-surface">
+                                {!! __('He leído y acepto las :terms y la :privacy de :store.', [
+                                    'terms' => '<a href="'.e(route('store.page', 'condiciones-generales')).'" class="font-semibold underline hover:text-primary" target="_blank">'.e(__('condiciones de venta')).'</a>',
+                                    'privacy' => '<a href="'.e(route('store.page', 'politica-de-privacidad')).'" class="font-semibold underline hover:text-primary" target="_blank">'.e(__('política de privacidad')).'</a>',
+                                    'store' => e($store->store_name),
+                                ]) !!} <span class="text-secondary">*</span>
+                            </span>
+                        </label>
+                        @error('accept_terms') <p class="px-2 text-sm text-error">{{ $message }}</p> @enderror
                         <ul class="flex flex-col gap-2 pt-2 text-xs">
                             <li class="flex items-center gap-2.5 rounded-lg bg-surface-container-low p-2 text-on-surface">@svg('heroicon-o-shield-check', 'size-5 shrink-0 text-secondary') <span>{!! __(':strong con certificado bancario SSL', ['strong' => '<strong>'.e(__('Pago 100% cifrado')).'</strong>']) !!}</span></li>
                             @if ($store->address_line)

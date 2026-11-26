@@ -8,16 +8,18 @@ use App\Domain\Orders\Cart\Cart;
 use App\Domain\Orders\Enums\Fulfillment;
 use App\Domain\Orders\Enums\PaymentMethod;
 use App\Domain\Orders\Settings\CheckoutSettings;
+use App\Domain\Payments\Settings\PaymentSettings;
 use App\Domain\Shared\Exceptions\DomainRuleException;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /** Cart and checkout page (Stitch "Cistella i Pagament"). */
 class CartController extends Controller
 {
-    public function show(Request $request, Cart $cart, CheckoutSettings $settings): View
+    public function show(Request $request, Cart $cart, CheckoutSettings $settings, PaymentSettings $payments): View
     {
         $fulfillment = Fulfillment::tryFrom((string) old('fulfillment')) ?? ($settings->pickup_enabled ? Fulfillment::Pickup : Fulfillment::Delivery);
         $customer = $request->user('web');
@@ -31,7 +33,15 @@ class CartController extends Controller
             ->limit(2)
             ->get();
 
+        // One token per checkout: submitting the form twice never creates two orders (PlaceOrder).
+        if (! $request->session()->has('checkout_token')) {
+            $request->session()->put('checkout_token', (string) Str::ulid());
+        }
+
         return view('store.cart', [
+            'checkoutToken' => $request->session()->get('checkout_token'),
+            'deliveryQuotes' => $cart->deliveryQuotes(),
+            'deliveryAvailable' => $settings->delivery_enabled && $payments->anyOnlineReady(),
             'lines' => $lines,
             'totals' => [
                 'pickup' => $cart->totals(Fulfillment::Pickup),

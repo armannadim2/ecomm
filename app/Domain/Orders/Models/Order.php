@@ -3,11 +3,14 @@
 namespace App\Domain\Orders\Models;
 
 use App\Domain\Customers\Models\Customer;
+use App\Domain\Invoices\Models\Invoice;
 use App\Domain\Orders\Enums\Fulfillment;
 use App\Domain\Orders\Enums\OrderStatus;
 use App\Domain\Orders\Enums\PaymentMethod;
 use App\Domain\Orders\Enums\PaymentStatus;
 use App\Domain\Orders\Policies\OrderPolicy;
+use App\Domain\Payments\Models\Payment;
+use App\Domain\Payments\Models\PaymentRefund;
 use chillerlan\QRCode\Output\QROutputInterface;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
@@ -25,12 +28,13 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * Contact, address and product data are copies taken at checkout.
  */
 #[Fillable([
-    'number', 'customer_id', 'status', 'fulfillment', 'payment_method', 'payment_status', 'pickup_code',
+    'number', 'idempotency_key', 'customer_id', 'status', 'fulfillment', 'payment_method', 'payment_status', 'pickup_code',
     'first_name', 'last_name', 'email', 'phone', 'tax_id',
     'ship_line1', 'ship_line2', 'ship_postal_code', 'ship_city', 'ship_province',
-    'subtotal_cents', 'shipping_cents', 'total_cents', 'tax_cents', 'savings_cents',
+    'carrier', 'tracking_number', 'tracking_url', 'shipping_zone',
+    'subtotal_cents', 'shipping_cents', 'total_cents', 'tax_cents', 'savings_cents', 'refunded_cents',
     'locale', 'marketing_opt_in', 'customer_note', 'staff_note',
-    'placed_at', 'paid_at', 'ready_at', 'completed_at', 'cancelled_at',
+    'placed_at', 'terms_accepted_at', 'paid_at', 'payment_expires_at', 'ready_at', 'completed_at', 'cancelled_at', 'cancel_reason',
 ])]
 #[UsePolicy(OrderPolicy::class)]
 class Order extends Model
@@ -60,8 +64,11 @@ class Order extends Model
             'total_cents' => 'integer',
             'tax_cents' => 'integer',
             'savings_cents' => 'integer',
+            'refunded_cents' => 'integer',
             'placed_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
             'paid_at' => 'datetime',
+            'payment_expires_at' => 'datetime',
             'ready_at' => 'datetime',
             'completed_at' => 'datetime',
             'cancelled_at' => 'datetime',
@@ -72,6 +79,35 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /** @return HasMany<Payment, $this> */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /** @return HasMany<PaymentRefund, $this> */
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(PaymentRefund::class);
+    }
+
+    /** @return HasMany<Invoice, $this> */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /** Amount that can still be given back to the customer. */
+    public function refundableCents(): int
+    {
+        return $this->payment_status->isPaid() ? max(0, $this->total_cents - $this->refunded_cents) : 0;
+    }
+
+    public function isAwaitingOnlinePayment(): bool
+    {
+        return $this->status === OrderStatus::PendingPayment && $this->payment_method->isOnline() && ! $this->payment_status->isPaid();
     }
 
     /** @return BelongsTo<Customer, $this> */
@@ -134,7 +170,7 @@ class Order extends Model
     {
         return LogOptions::defaults()
             ->useLogName('orders')
-            ->logOnly(['status', 'payment_status', 'staff_note'])
+            ->logOnly(['status', 'payment_status', 'refunded_cents', 'staff_note', 'tracking_number'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }

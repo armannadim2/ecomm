@@ -80,7 +80,7 @@ it('shows the open pickup order with its QR code on the account page', function 
     post('/cesta', ['variant' => $variant->ulid]);
     post('/cesta/confirmar', [
         'fulfillment' => 'pickup', 'payment_method' => 'pay_in_store',
-        'first_name' => 'Marta', 'last_name' => 'Puig', 'email' => $customer->email, 'phone' => '612345678',
+        'first_name' => 'Marta', 'last_name' => 'Puig', 'email' => $customer->email, 'phone' => '612345678', 'accept_terms' => '1',
     ])->assertRedirect();
 
     $order = $customer->orders()->sole();

@@ -15,6 +15,7 @@ use App\Domain\Shared\Exceptions\DomainRuleException;
 use App\Domain\Staff\Models\Staff;
 use App\Filament\Resources\Returns\Pages\ListReturnRequests;
 use App\Filament\Resources\Returns\Pages\ViewReturnRequest;
+use App\Filament\Support\ConfirmPassword;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
@@ -304,6 +305,7 @@ describe('staff', function () {
         $second = pendingReturn($this->customer);
         Filament::setCurrentPanel('admin');
         actingAs(staffWithRole('Pedidos'), Staff::GUARD);
+        session([ConfirmPassword::SESSION_KEY => now()->getTimestamp()]);
 
         Livewire::test(ViewReturnRequest::class, ['record' => $request->getRouteKey()])
             ->callAction('to_approved')
@@ -313,8 +315,10 @@ describe('staff', function () {
         Livewire::test(ViewReturnRequest::class, ['record' => $request->getRouteKey()])
             ->callAction('to_received');
         Livewire::test(ViewReturnRequest::class, ['record' => $request->getRouteKey()])
-            ->callAction('to_refunded');
-        expect($request->fresh()->status)->toBe(ReturnStatus::Refunded);
+            ->callAction('to_refunded', ['amount_cents' => '50.00']);
+        expect($request->fresh()->status)->toBe(ReturnStatus::Refunded)
+            ->and($request->order->fresh()->refunded_cents)->toBe(5000)
+            ->and($request->order->invoices()->where('type', 'corrective')->value('total_cents'))->toBe(-5000);
 
         Livewire::test(ViewReturnRequest::class, ['record' => $second->getRouteKey()])
             ->callAction('to_rejected', ['rejection_reason' => 'Fuera de plazo.']);

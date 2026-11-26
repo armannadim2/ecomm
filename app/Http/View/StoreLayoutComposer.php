@@ -72,12 +72,12 @@ class StoreLayoutComposer
                 'valueProps' => (new Block('layout', ['items' => $this->content->value_props]))->items('items'),
                 'footer' => new Block('footer', $this->content->footer),
             ],
-            'footerPages' => Cache::remember('store.footer', now()->addMinutes(10), fn () => Page::query()
+            'footerPages' => Cache::remember('store.footer.'.app()->getLocale(), now()->addMinutes(10), fn () => Page::query()
                 ->published()
                 ->where('show_in_footer', true)
                 ->orderBy('position')
-                ->get(['title', 'slug'])
-                ->map(fn (Page $p) => ['title' => $p->title, 'slug' => $p->slug])
+                ->get(['title', 'slug', 'translations'])
+                ->map(fn (Page $p) => ['title' => $p->localizedTitle(), 'slug' => $p->slug])
                 ->all()),
             // Slugs of all published pages, so links like "Envíos y devoluciones" only appear when the page exists.
             'pageSlugs' => Cache::remember('store.page-slugs', now()->addMinutes(10), fn () => Page::query()

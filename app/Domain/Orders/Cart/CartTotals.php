@@ -2,6 +2,8 @@
 
 namespace App\Domain\Orders\Cart;
 
+use App\Domain\Orders\Enums\ShippingZone;
+
 /** Cart amounts in cents, IVA included. */
 final class CartTotals
 {
@@ -13,6 +15,8 @@ final class CartTotals
         public readonly int $tax,
         /** Amount still needed for free home delivery (0 = already free or not applicable). */
         public readonly int $missingForFreeDelivery,
+        /** Home delivery zone the shipping price is for (null = pickup). */
+        public readonly ?ShippingZone $zone = null,
     ) {}
 
     public function total(): int

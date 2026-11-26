@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Payments\Actions\ReconcilePayments;
 use App\Domain\Staff\Models\Staff;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Illuminate\Support\Facades\Artisan;
@@ -14,6 +15,13 @@ Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')
     ->everyMinute()
     ->withoutOverlapping(5)
     ->runInBackground();
+
+// Online payments: check PayPal payments left half-way and cancel unpaid orders whose reservation ended.
+Artisan::command('payments:reconcile', function (ReconcilePayments $reconcile) {
+    $result = $reconcile->handle();
+    $this->info("Captured: {$result['captured']} · Expired orders: {$result['expired']}");
+})->purpose('Reconcile pending online payments and release stock of unpaid orders');
+Schedule::command('payments:reconcile')->everyFiveMinutes()->withoutOverlapping(10);
 
 // Products scheduled to go live (CAT-12).
 Schedule::command('catalog:publish-scheduled')->everyMinute()->withoutOverlapping();

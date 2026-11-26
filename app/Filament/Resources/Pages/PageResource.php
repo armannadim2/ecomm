@@ -23,6 +23,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -66,6 +68,20 @@ class PageResource extends Resource
                                 ])
                                 ->hidden(fn (?Page $record) => $record?->isHome()),
                         ]),
+                        Section::make('Traducciones')
+                            ->description('Vacío = se muestra el texto en español. Las páginas legales deben estar también en catalán (Codi de consum de Catalunya).')
+                            ->collapsible()
+                            ->hidden(fn (?Page $record) => $record?->isHome())
+                            ->schema([
+                                Tabs::make('translations_tabs')->tabs(collect(['ca' => 'Català', 'en' => 'English'])->map(fn (string $label, string $locale) => Tab::make($label)->schema([
+                                    TextInput::make("translations.{$locale}.title")->label('Título')->maxLength(150),
+                                    RichEditor::make("translations.{$locale}.body")->label('Contenido')->toolbarButtons([
+                                        ['bold', 'italic', 'underline', 'link'],
+                                        ['h2', 'h3', 'bulletList', 'orderedList'],
+                                        ['undo', 'redo'],
+                                    ]),
+                                ]))->values()->all()),
+                            ]),
                     ])->columnSpan(['lg' => 2]),
                     Group::make([
                         Section::make('Publicación')->schema([

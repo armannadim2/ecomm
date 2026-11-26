@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Store;
 
 use App\Domain\Customers\Actions\RegisterCustomer;
+use App\Domain\Orders\Cart\Cart;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Store\LoginRequest;
 use App\Http\Requests\Store\RegisterRequest;
@@ -46,7 +47,9 @@ class AuthController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
-        Auth::guard('web')->user()->forceFill(['last_login_at' => now()])->saveQuietly();
+        $customer = Auth::guard('web')->user();
+        $customer->forceFill(['last_login_at' => now()])->saveQuietly();
+        app(Cart::class)->mergeSaved($customer);
 
         return redirect()->intended(route('account.dashboard'));
     }

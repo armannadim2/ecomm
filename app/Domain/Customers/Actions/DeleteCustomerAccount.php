@@ -24,6 +24,7 @@ class DeleteCustomerAccount
                 'last_name' => 'eliminado',
                 'email' => "deleted-{$customer->ulid}@invalid.local",
                 'phone' => null,
+                'saved_cart' => null,
                 'password' => Str::random(64),
                 'marketing_consent_at' => null,
                 'remember_token' => null,

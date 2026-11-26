@@ -119,6 +119,19 @@
                         @svg('heroicon-o-chevron-right', 'size-4 text-outline')
                     </span>
                 </a>
+                <div class="mt-2 flex flex-wrap items-center gap-2 px-1">
+                    <form method="post" action="{{ route('account.reorder', $order) }}">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-primary ring-1 ring-outline-variant hover:bg-surface-container-low">
+                            @svg('heroicon-o-arrow-path', 'size-4') {{ __('Volver a comprar') }}
+                        </button>
+                    </form>
+                    @foreach ($order->invoices as $invoice)
+                        <a href="{{ route('invoice.download', $invoice) }}" class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-primary ring-1 ring-outline-variant hover:bg-surface-container-low">
+                            @svg('heroicon-o-document-arrow-down', 'size-4') {{ $invoice->isCorrective() ? __('Factura rectificativa :n', ['n' => $invoice->code]) : __('Factura :n', ['n' => $invoice->code]) }}
+                        </a>
+                    @endforeach
+                </div>
             </li>
             @if ($loop->last)</ul>@endif
         @empty

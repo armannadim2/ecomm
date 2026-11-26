@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\ProductImageController;
 use App\Http\Controllers\Api\V1\StockController;
 use App\Http\Controllers\Api\V1\VariantController;
+use App\Http\Controllers\Webhooks\PaymentWebhookController;
 use App\Http\Controllers\Webhooks\WhatsAppWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +21,13 @@ use Illuminate\Support\Facades\Route;
  */
 Route::get('webhooks/whatsapp', [WhatsAppWebhookController::class, 'verify'])->middleware('throttle:60,1')->name('webhooks.whatsapp.verify');
 Route::post('webhooks/whatsapp', [WhatsAppWebhookController::class, 'receive'])->middleware('throttle:600,1')->name('webhooks.whatsapp');
+
+/*
+ * Payment gateway notifications (server to server, signed). Redsys "URL de notificación":
+ * https://<shop>/api/webhooks/redsys — PayPal webhook URL: https://<shop>/api/webhooks/paypal
+ */
+Route::post('webhooks/redsys', [PaymentWebhookController::class, 'redsys'])->middleware('throttle:300,1')->name('webhooks.redsys');
+Route::post('webhooks/paypal', [PaymentWebhookController::class, 'paypal'])->middleware('throttle:300,1')->name('webhooks.paypal');
 
 /*
  * REST API v1 for outside systems (POS, ERP, marketplaces). Reference: docs/API.md.

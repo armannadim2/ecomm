@@ -2,11 +2,13 @@
 
 namespace App\Domain\Orders\Enums;
 
+use App\Domain\Payments\Enums\Gateway;
+use App\Domain\Payments\Settings\PaymentSettings;
 use Filament\Support\Contracts\HasLabel;
 
 /**
- * Payment methods. Online methods (Bizum and card through Redsys, PayPal) are shown as "coming soon"
- * until their gateway is built (Phase 2 part 2b); only paying at the shop counter works today.
+ * Payment methods. Card and Bizum go through Redsys, PayPal through PayPal. An online method is offered
+ * only when it is switched on and its credentials are filled in ("Pedidos → Pagos online").
  */
 enum PaymentMethod: string implements HasLabel
 {
@@ -30,10 +32,25 @@ enum PaymentMethod: string implements HasLabel
         return $this !== self::PayInStore;
     }
 
-    /** Whether customers can choose it right now. */
+    public function gateway(): ?Gateway
+    {
+        return match ($this) {
+            self::Card, self::Bizum => Gateway::Redsys,
+            self::PayPal => Gateway::PayPal,
+            self::PayInStore => null,
+        };
+    }
+
+    /** Whether customers can choose it right now (pay in store also depends on the checkout settings). */
     public function isAvailable(): bool
     {
-        // No online gateway is connected yet.
-        return ! $this->isOnline();
+        $settings = app(PaymentSettings::class);
+
+        return match ($this) {
+            self::Card => $settings->cardReady(),
+            self::Bizum => $settings->bizumReady(),
+            self::PayPal => $settings->paypalReady(),
+            self::PayInStore => true,
+        };
     }
 }

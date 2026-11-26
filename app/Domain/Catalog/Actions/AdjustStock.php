@@ -5,6 +5,7 @@ namespace App\Domain\Catalog\Actions;
 use App\Domain\Catalog\Models\ProductVariant;
 use App\Domain\Integrations\WebhookObserver;
 use App\Domain\Shared\Exceptions\DomainRuleException;
+use App\Http\Middleware\PageCache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -40,6 +41,8 @@ class AdjustStock
 
             // saveQuietly skips model events, so tell webhook listeners (POS…) once the change is committed.
             DB::afterCommit(fn () => app(WebhookObserver::class)->stockChanged($locked));
+            // Cached product pages show the stock ("últimas unidades", sold out).
+            DB::afterCommit(fn () => PageCache::flush());
 
             activity('stock')
                 ->performedOn($locked)
