@@ -10,6 +10,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RolesAndPermissionsSeeder::class);
         $this->call(LegalPagesSeeder::class);
+        $this->call(CategoriesSeeder::class);
         $this->call(HomePageSeeder::class);
 
         if (app()->environment('local')) {
